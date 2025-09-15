@@ -1,0 +1,177 @@
+@extends('layouts.app')
+
+@section('content')
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Company Management</h1>
+                    <p class="text-gray-600 mt-2">Manage companies and their events</p>
+                </div>
+                <a href="{{ route('companies.create') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200 flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Add Company
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    @if(session('success'))
+        <div class="max-w-6xl mx-auto px-4 pt-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+
+    <!-- Error Message -->
+    @if(session('error'))
+        <div class="max-w-6xl mx-auto px-4 pt-4">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        @if($companies->count() > 0)
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Companies</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ $companies->count() }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-building text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Events</p>
+                            <p class="text-3xl font-bold text-green-900">{{ $companies->sum(function($company) { return $company->events->count(); }) }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calendar-alt text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Users</p>
+                            <p class="text-3xl font-bold text-purple-900">{{ $companies->sum(function($company) { return $company->users->count(); }) }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-users text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Active Companies</p>
+                            <p class="text-3xl font-bold text-orange-900">{{ $companies->filter(function($company) { return $company->events->count() > 0; })->count() }}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-chart-line text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Companies Table -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold text-gray-900">Company List</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Events</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Users</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach($companies as $company)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                                <span class="text-white font-medium">{{ substr($company->name, 0, 2) }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">{{ $company->name }}</div>
+                                            @if($company->address)
+                                                <div class="text-sm text-gray-500">{{ Str::limit($company->address, 50) }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($company->email)
+                                        <div class="text-sm text-gray-900">{{ $company->email }}</div>
+                                    @endif
+                                    @if($company->phone)
+                                        <div class="text-sm text-gray-500">{{ $company->phone }}</div>
+                                    @endif
+                                    @if(!$company->email && !$company->phone)
+                                        <span class="text-gray-400">No contact info</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ $company->events->count() }} events</div>
+                                    @if($company->events->count() > 0)
+                                        <div class="text-sm text-gray-500">Latest: {{ $company->events->first()->name ?? 'N/A' }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ $company->users->count() }} users</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="{{ route('companies.show', $company->id) }}" class="text-blue-600 hover:text-blue-900" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('companies.edit', $company->id) }}" class="text-indigo-600 hover:text-indigo-900" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form action="{{ route('companies.destroy', $company->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this company? This will also delete all associated events and users.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-600 hover:text-red-900" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @else
+            <!-- Empty State -->
+            <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                <i class="fas fa-building text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No Companies Found</h3>
+                <p class="text-gray-500 mb-6">Start by adding your first company to manage events and users.</p>
+                <a href="{{ route('companies.create') }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200">
+                    Add First Company
+                </a>
+            </div>
+        @endif
+    </div>
+@endsection
