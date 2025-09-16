@@ -74,7 +74,10 @@ class EventController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'location' => 'nullable|string|max:255',
-            'social_media' => 'nullable|string|in:facebook,instagram,linkedin,website',
+            'facebook' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',
+            'linkedin' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
         ]);
 
         $eventData = $request->except(['logo']);
@@ -162,7 +165,10 @@ class EventController extends Controller
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
             'location' => 'nullable|string|max:255',
-            'social_media' => 'nullable|json',
+            'facebook' => 'nullable|string|max:255',
+            'instagram' => 'nullable|string|max:255',   
+            'linkedin' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
         ]);
 
         $eventData = $request->except(['logo']);

@@ -33,17 +33,12 @@
                 @endforeach
             </select>
             <select class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                <option>All Zones</option>
-                <option>VIP Section</option>
-                <option>General Admission</option>
-                <option>Balcony</option>
+                @foreach($event->eventZones as $zone)
+                    <option value="{{ $zone->id }}">{{ $zone->name }}</option>
+                @endforeach
+               
             </select>
-            <select class="px-3 py-1 border border-gray-300 rounded-md text-sm">
-                <option>All Statuses</option>
-                <option>Available</option>
-                <option>Sold Out</option>
-                <option>Limited</option>
-            </select>
+         
         </div>
     </div>
 
@@ -66,7 +61,7 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-2xl font-bold text-blue-600">${{ number_format($ticket->price, 2) }}</div>
+                                    <div class="text-2xl font-bold text-blue-600">{{ $ticket->currency->symbol ?? '$' }} {{ number_format($ticket->price, 2) }}</div>
                                 </div>
                             </div>
                             
@@ -173,7 +168,7 @@
                     <div class="text-gray-600 mt-1">Total Tickets</div>
                 </div>
                 <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                    <div class="text-3xl font-bold text-green-600">${{ number_format($tickets->sum('price'), 0) }}</div>
+                    <div class="text-3xl font-bold text-green-600">{{ $ticket->currency->symbol ?? '$' }} {{ number_format($tickets->sum('price'), 0) }}</div>
                     <div class="text-gray-600 mt-1">Total Value</div>
                 </div>
                 <div class="bg-white rounded-lg shadow-md p-6 text-center">
@@ -181,7 +176,7 @@
                     <div class="text-gray-600 mt-1">Total Quantity</div>
                 </div>
                 <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                    <div class="text-3xl font-bold text-orange-600">${{ number_format($tickets->avg('price'), 0) }}</div>
+                    <div class="text-3xl font-bold text-orange-600">{{ $ticket->currency->symbol ?? '$' }} {{ number_format($tickets->avg('price'), 0) }}</div>
                     <div class="text-gray-600 mt-1">Avg. Price</div>
                 </div>
             </div>
