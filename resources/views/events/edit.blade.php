@@ -192,7 +192,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Facebook -->
                         <div>
-                            <label for="facebook_url" class="block text-sm font-medium text-gray-600 mb-2">
+                            <label for="facebook" class="block text-sm font-medium text-gray-600 mb-2">
                                 <div class="flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                                         <path
@@ -201,18 +201,17 @@
                                     Facebook
                                 </div>
                             </label>
-                            <input type="url" id="facebook_url" name="facebook_url"
-                                value="{{ old('facebook_url', $event->facebook_url) }}"
+                            <input type="url" id="facebook" name="facebook" value="{{ old('facebook', $event->facebook) }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="https://facebook.com/your-page">
-                            @error('facebook_url')
+                            @error('facebook')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Instagram -->
                         <div>
-                            <label for="instagram_url" class="block text-sm font-medium text-gray-600 mb-2">
+                            <label for="instagram" class="block text-sm font-medium text-gray-600 mb-2">
                                 <div class="flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
                                         <path
@@ -221,18 +220,18 @@
                                     Instagram
                                 </div>
                             </label>
-                            <input type="url" id="instagram_url" name="instagram_url"
-                                value="{{ old('instagram_url', $event->instagram_url) }}"
+                            <input type="url" id="instagram" name="instagram"
+                                value="{{ old('instagram', $event->instagram) }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="https://instagram.com/your-account">
-                            @error('instagram_url')
+                            @error('instagram')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- LinkedIn -->
                         <div>
-                            <label for="linkedin_url" class="block text-sm font-medium text-gray-600 mb-2">
+                            <label for="linkedin" class="block text-sm font-medium text-gray-600 mb-2">
                                 <div class="flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
                                         <path
@@ -241,18 +240,17 @@
                                     LinkedIn
                                 </div>
                             </label>
-                            <input type="url" id="linkedin_url" name="linkedin_url"
-                                value="{{ old('linkedin_url', $event->linkedin_url) }}"
+                            <input type="url" id="linkedin" name="linkedin" value="{{ old('linkedin', $event->linkedin) }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="https://linkedin.com/company/your-company">
-                            @error('linkedin_url')
+                            @error('linkedin')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Website -->
                         <div>
-                            <label for="website_url" class="block text-sm font-medium text-gray-600 mb-2">
+                            <label for="website" class="block text-sm font-medium text-gray-600 mb-2">
                                 <div class="flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -263,11 +261,10 @@
                                     Website
                                 </div>
                             </label>
-                            <input type="url" id="website_url" name="website_url"
-                                value="{{ old('website_url', $event->website_url) }}"
+                            <input type="url" id="website" name="website" value="{{ old('website', $event->website) }}"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="https://your-website.com">
-                            @error('website_url')
+                            @error('website')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
