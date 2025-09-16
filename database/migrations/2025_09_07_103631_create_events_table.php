@@ -26,7 +26,10 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->string('location')->nullable();
-            $table->enum('social_media', ['facebook', 'instagram', 'linkedin','website'])->nullable();
+            $table->string('facebook')->nullable();
+            $table->string('instagram')->nullable();
+            $table->string('linkedin')->nullable();
+            $table->string('website')->nullable();
             $table->timestamps();
         });
     }

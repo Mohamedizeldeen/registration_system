@@ -23,7 +23,10 @@ class Event extends Model
         'email',
         'phone',
         'location',
-        'social_media',
+        'facebook',
+        'instagram',
+        'linkedin',
+        'website',
         'company_id',
     ];
 

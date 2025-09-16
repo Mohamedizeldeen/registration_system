@@ -153,7 +153,7 @@
                                     <p class="text-sm text-gray-500">Quantity: {{ $ticket->quantity }}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-lg font-bold text-gray-900">${{ number_format($ticket->price, 2) }}</p>
+                                    <p class="text-lg font-bold text-gray-900">{{ $ticket->currency->symbol ?? '$' }} {{ number_format($ticket->price, 2) }}</p>
                                     <p class="text-sm text-gray-600">{{ $ticket->currency->symbol ?? '$' }} {{ $ticket->currency->code ?? 'USD' }}</p>
                                 </div>
                             </div>
@@ -185,7 +185,7 @@
                             <p class="text-sm text-gray-600">Attendees</p>
                         </div>
                         <div class="text-center border-t border-gray-200 pt-4">
-                            <p class="text-2xl font-bold text-orange-600">${{ number_format($event->tickets->sum('price') ?? 0, 2) }}</p>
+                            <p class="text-2xl font-bold text-orange-600">{{ $ticket->currency->symbol ?? '$' }} {{ number_format($event->tickets->sum('price') ?? 0, 2) }}</p>
                             <p class="text-sm text-gray-600">Total Ticket Value</p>
                         </div>
                     </div>
