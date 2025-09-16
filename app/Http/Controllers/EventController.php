@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Response;
+use App\Models\Company;
 
 class EventController extends Controller
 {
@@ -17,6 +18,7 @@ class EventController extends Controller
     public function index()
     {
         $user = Auth::user();
+        
         
         // Super admin can see all events
         if ($user->role === 'super_admin') {
@@ -30,7 +32,7 @@ class EventController extends Controller
                 ->orderBy('event_date', 'desc')
                 ->paginate(10);
         }
-        
+
         return view('events.index', compact('events'));
     }
 
@@ -40,13 +42,15 @@ class EventController extends Controller
     public function create()
     {
         $user = Auth::user();
+        $getAllCompanies = Company::all();
+
         
         // Only super admin and company admin can create events
         if (!in_array($user->role, ['super_admin','admin'])) {
             abort(403, 'Access denied. Only administrators can create events.');
         }
         
-        return view('events.create');
+        return view('events.create' , compact('getAllCompanies'));
     }
 
     /**
@@ -63,6 +67,7 @@ class EventController extends Controller
         
         $request->validate([
             'name' => 'required|string|max:255',
+            'company_id' => 'required|exists:companies,id',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'description' => 'required|string',
             'type' => 'required|string|in:hybrid,virtual,onsite',

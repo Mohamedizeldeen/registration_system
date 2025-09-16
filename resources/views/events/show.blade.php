@@ -91,7 +91,7 @@
                 </div>
 
                 <!-- Contact Information -->
-                @if($event->email || $event->phone || $event->social_media)
+                @if($event->email || $event->phone || $event->facebook || $event->website || $event->instagram || $event->linkedin)
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                         <div class="px-6 py-4 border-b border-gray-200">
                             <h2 class="text-xl font-semibold text-gray-900">Contact Information</h2>
@@ -111,10 +111,32 @@
                                         class="text-blue-600 hover:text-blue-800">{{ $event->phone }}</a>
                                 </div>
                             @endif
-                            @if($event->social_media)
+                            @if ($event->website)
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-share-alt text-gray-400"></i>
-                                    <span class="text-gray-600">{{ ucfirst($event->social_media) }}</span>
+                                    <i class="fas fa-globe text-gray-400"></i>
+                                    <a href="{{ $event->website }}" target="_blank"
+                                        class="text-blue-600 hover:text-blue-800">{{ $event->website }}</a>
+                                </div>
+                            @endif
+                            @if ($event->facebook)
+                                <div class="flex items-center space-x-3">
+                                    <i class="fab fa-facebook text-gray-400"></i>
+                                    <a href="{{ $event->facebook }}" target="_blank"
+                                        class="text-blue-600 hover:text-blue-800">Facebook</a>
+                                </div>
+                            @endif
+                            @if ($event->instagram)
+                                <div class="flex items-center space-x-3">
+                                    <i class="fab fa-instagram text-gray-400"></i>
+                                    <a href="{{ $event->instagram }}" target="_blank"
+                                        class="text-blue-600 hover:text-blue-800">Instagram</a>
+                                </div>
+                            @endif
+                            @if ($event->linkedin)
+                                <div class="flex items-center space-x-3">
+                                    <i class="fab fa-linkedin text-gray-400"></i>
+                                    <a href="{{ $event->linkedin }}" target="_blank"
+                                        class="text-blue-600 hover:text-blue-800">LinkedIn</a>
                                 </div>
                             @endif
                         </div>
