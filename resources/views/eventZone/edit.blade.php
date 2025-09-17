@@ -27,7 +27,8 @@
             <!-- Current Zone Info -->
             <div class="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50">
                 <div class="flex items-center">
-                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
+                    <div
+                        class="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
                         <i class="fas fa-map-marker-alt text-white text-lg"></i>
                     </div>
                     <div>
@@ -35,7 +36,7 @@
                             {{ $eventZone->name ?? 'VIP Section' }}
                         </h2>
                         <p class="text-gray-600">
-                            Current capacity: {{ number_format($eventZone->capacity ?? 100) }} • 
+                            Current capacity: {{ number_format($eventZone->capacity ?? 100) }} •
                             Event: {{ $eventZone->event->name ?? 'Tech Conference 2024' }}
                         </p>
                     </div>
@@ -57,17 +58,17 @@
             <form action="{{ route('eventZones.update', $eventZone->id ?? 1) }}" method="POST" class="p-6">
                 @csrf
                 @method('PUT')
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Zone Name -->
                     <div class="md:col-span-1">
                         <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-tag mr-2 text-purple-500"></i>Zone Name *
                         </label>
-                        <input type="text" id="name" name="name" 
-                               value="{{ old('name', $eventZone->name ?? 'VIP Section') }}" required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                               placeholder="e.g., VIP Section, General Admission">
+                        <input type="text" id="name" name="name"
+                            value="{{ old('name', $eventZone->name ?? 'VIP Section') }}" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="e.g., VIP Section, General Admission">
                     </div>
 
                     <!-- Capacity -->
@@ -75,10 +76,10 @@
                         <label for="capacity" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-users mr-2 text-blue-500"></i>Capacity *
                         </label>
-                        <input type="number" id="capacity" name="capacity" 
-                               value="{{ old('capacity', $eventZone->capacity ?? 100) }}" required min="1"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                               placeholder="Maximum number of attendees">
+                        <input type="number" id="capacity" name="capacity"
+                            value="{{ old('capacity', $eventZone->capacity ?? 100) }}" required min="1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="Maximum number of attendees">
                         <p class="text-xs text-gray-500 mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
                             Current occupancy: {{ $eventZone->tickets_sold ?? 45 }}/{{ $eventZone->capacity ?? 100 }}
@@ -92,12 +93,11 @@
                         <i class="fas fa-calendar-alt mr-2 text-green-500"></i>Associated Event *
                     </label>
                     <select id="event_id" name="event_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         <option value="">Select an event</option>
                         @if(isset($events))
                             @foreach($events as $event)
-                                <option value="{{ $event->id }}" 
-                                        {{ old('event_id', $eventZone->event_id ?? 1) == $event->id ? 'selected' : '' }}>
+                                <option value="{{ $event->id }}" {{ old('event_id', $eventZone->event_id ?? 1) == $event->id ? 'selected' : '' }}>
                                     {{ $event->name }} - {{ date('M d, Y', strtotime($event->event_date)) }}
                                 </option>
                             @endforeach
@@ -116,23 +116,6 @@
                     </select>
                 </div>
 
-                <!-- Zone Type (Optional) -->
-                <div class="mt-6">
-                    <label for="zone_type" class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-layer-group mr-2 text-indigo-500"></i>Zone Type
-                    </label>
-                    <select id="zone_type" name="zone_type"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                        <option value="">Select zone type</option>
-                        <option value="vip" {{ old('zone_type', $eventZone->zone_type ?? 'vip') == 'vip' ? 'selected' : '' }}>VIP</option>
-                        <option value="premium" {{ old('zone_type', $eventZone->zone_type ?? '') == 'premium' ? 'selected' : '' }}>Premium</option>
-                        <option value="standard" {{ old('zone_type', $eventZone->zone_type ?? '') == 'standard' ? 'selected' : '' }}>Standard</option>
-                        <option value="general" {{ old('zone_type', $eventZone->zone_type ?? '') == 'general' ? 'selected' : '' }}>General Admission</option>
-                        <option value="balcony" {{ old('zone_type', $eventZone->zone_type ?? '') == 'balcony' ? 'selected' : '' }}>Balcony</option>
-                        <option value="floor" {{ old('zone_type', $eventZone->zone_type ?? '') == 'floor' ? 'selected' : '' }}>Floor</option>
-                        <option value="mezzanine" {{ old('zone_type', $eventZone->zone_type ?? '') == 'mezzanine' ? 'selected' : '' }}>Mezzanine</option>
-                    </select>
-                </div>
 
                 <!-- Description -->
                 <div class="mt-6">
@@ -140,34 +123,10 @@
                         <i class="fas fa-align-left mr-2 text-orange-500"></i>Description
                     </label>
                     <textarea id="description" name="description" rows="4"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="Describe the zone location, amenities, or special features...">{{ old('description', $eventZone->description ?? 'Premium seating area with exclusive access to VIP lounge and complimentary refreshments.') }}</textarea>
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Describe the zone location, amenities, or special features...">{{ old('description', $eventZone->description ?? 'Premium seating area with exclusive access to VIP lounge and complimentary refreshments.') }}</textarea>
                 </div>
 
-                <!-- Current Status Information -->
-                <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-                    <h3 class="text-sm font-medium text-gray-700 mb-3">
-                        <i class="fas fa-chart-bar mr-2"></i>Current Status
-                    </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-blue-600">{{ $eventZone->tickets_sold ?? 45 }}</div>
-                            <div class="text-xs text-gray-600">Tickets Sold</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-green-600">{{ ($eventZone->capacity ?? 100) - ($eventZone->tickets_sold ?? 45) }}</div>
-                            <div class="text-xs text-gray-600">Available</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-purple-600">{{ round((($eventZone->tickets_sold ?? 45) / ($eventZone->capacity ?? 100)) * 100) }}%</div>
-                            <div class="text-xs text-gray-600">Occupancy</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-2xl font-bold text-orange-600">{{ $eventZone->tickets_count ?? 3 }}</div>
-                            <div class="text-xs text-gray-600">Ticket Types</div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Capacity Change Warning -->
                 <div id="capacity-warning" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg hidden">
@@ -176,7 +135,7 @@
                         <div>
                             <h4 class="font-semibold text-yellow-800">Capacity Change Warning</h4>
                             <p class="text-yellow-700 text-sm mt-1">
-                                Reducing capacity below current ticket sales may cause issues. 
+                                Reducing capacity below current ticket sales may cause issues.
                                 Please ensure the new capacity accommodates existing reservations.
                             </p>
                         </div>
@@ -185,14 +144,17 @@
 
                 <!-- Form Actions -->
                 <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-                    <a href="{{ route('eventZones.index') }}" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition duration-200">
+                    <a href="{{ route('eventZones.index') }}"
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800 transition duration-200">
                         <i class="fas fa-times mr-2"></i>Cancel
                     </a>
                     <div class="flex space-x-3">
-                        <a href="{{ route('eventZones.show', $eventZone->id ?? 1) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200">
+                        <a href="{{ route('eventZones.show', $eventZone->id ?? 1) }}"
+                            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200">
                             <i class="fas fa-eye mr-2"></i>View Zone
                         </a>
-                        <button type="submit" class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition duration-200">
+                        <button type="submit"
+                            class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition duration-200">
                             <i class="fas fa-save mr-2"></i>Update Zone
                         </button>
                     </div>
@@ -206,8 +168,8 @@
         const capacityInput = document.getElementById('capacity');
         const warningDiv = document.getElementById('capacity-warning');
         const currentSold = {{ $eventZone->tickets_sold ?? 45 }};
-        
-        capacityInput.addEventListener('input', function() {
+
+        capacityInput.addEventListener('input', function () {
             const newCapacity = parseInt(this.value);
             if (newCapacity < currentSold) {
                 warningDiv.classList.remove('hidden');

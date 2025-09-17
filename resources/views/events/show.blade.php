@@ -59,7 +59,7 @@
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-1">Event Type</h4>
                                 <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
-                                                {{ $event->type === 'hybrid' ? 'bg-purple-100 text-purple-800' :
+                                                        {{ $event->type === 'hybrid' ? 'bg-purple-100 text-purple-800' :
         ($event->type === 'virtual' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
                                     {{ ucfirst($event->type) }}
                                 </span>
@@ -70,7 +70,9 @@
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-1">Time</h4>
-                                <p class="text-gray-600">{{ $event->start_time }} - {{ $event->end_time }}</p>
+                                <p class="text-gray-600">{{ \Carbon\Carbon::parse($event->start_time)->format('g:i A') }} -
+                                    {{ \Carbon\Carbon::parse($event->end_time)->format('g:i A') }}
+                                </p>
                             </div>
                             @if($event->location)
                                 <div>
@@ -181,7 +183,8 @@
                                         </div>
                                         <div class="text-right">
                                             <p class="text-lg font-bold text-gray-900">{{ $ticket->currency->symbol ?? '$' }}
-                                                {{ number_format($ticket->price, 2) }}</p>
+                                                {{ number_format($ticket->price, 2) }}
+                                            </p>
                                             <p class="text-sm text-gray-600">{{ $ticket->currency->code ?? 'USD' }}</p>
                                         </div>
                                     </div>
@@ -215,7 +218,8 @@
                         <div class="text-center border-t border-gray-200 pt-4">
                             <p class="text-2xl font-bold text-orange-600">
                                 {{ $event->tickets->first()->currency->symbol ?? '$' }}
-                                {{ number_format($event->tickets->sum('price') ?? 0, 2) }}</p>
+                                {{ number_format($event->tickets->sum('price') ?? 0, 2) }}
+                            </p>
                             <p class="text-sm text-gray-600">Total Ticket Value</p>
                         </div>
                     </div>
@@ -321,11 +325,11 @@
             notification.className = `copy-notification fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                 }`;
             notification.innerHTML = `
-                            <div class="flex items-center">
-                                <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'} mr-2"></i>
-                                ${message}
-                            </div>
-                        `;
+                                    <div class="flex items-center">
+                                        <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'} mr-2"></i>
+                                        ${message}
+                                    </div>
+                                `;
 
             // Add to page
             document.body.appendChild(notification);
