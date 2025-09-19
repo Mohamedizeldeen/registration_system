@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\event;
+use App\Models\Event;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Attendee;
@@ -19,7 +19,7 @@ class SuperAdmin extends Controller
      */
 
     public function dashboard(){
-        $events = event::all();
+        $events = Event::all();
         $users = User::all();
         $companies = Company::all();
         $attendees = Attendee::all();
@@ -27,7 +27,7 @@ class SuperAdmin extends Controller
         $tickets = Ticket::all();
         $payments = Payment::all();
 
-        return response()->json([
+        $response = response()->json([
             'events' => $events,
             'users' => $users,
             'companies' => $companies,
@@ -36,6 +36,51 @@ class SuperAdmin extends Controller
             'tickets' => $tickets,
             'payments' => $payments,
         ], 200);
+
+        // Add CORS headers to allow frontend access
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+        return $response;
+    }
+
+    public function upcomingEvents(){
+        try {
+            // Get upcoming events with attendee count and revenue data
+            $upcomingEvents = Event::withCount('attendees')
+                ->with(['payments' => function($query) {
+                    $query->where('status', 'completed');
+                }])
+                ->where(function($query) {
+                    // Get events that are upcoming or have no date set
+                    $query->where('event_date', '>=', now())
+                          ->orWhereNull('event_date');
+                })
+                ->orderBy('event_date', 'asc')
+                ->take(6) // Limit to 6 events for better performance
+                ->get()
+                ->map(function($event) {
+                    // Calculate total revenue for each event
+                    $event->total_revenue = $event->payments->sum('amount');
+                    // Remove payments collection to reduce response size
+                    unset($event->payments);
+                    return $event;
+                });
+
+            return response()->json([
+                'success' => true,
+                'events' => $upcomingEvents,
+                'count' => $upcomingEvents->count()
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch upcoming events',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     public function index()
     {

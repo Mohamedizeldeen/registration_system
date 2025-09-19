@@ -18,6 +18,25 @@ Route::get('/', function () {
     return view('landing');
 });
 
+// Frontend SuperAdmin Dashboard Route
+Route::get('/frontend/superadmin-dashboard', function () {
+    return response()->file(base_path('Frontend/SuperAdmin-dashboard/index.html'));
+});
+
+// Frontend SuperAdmin Dashboard CSS Route
+Route::get('/frontend/superadmin-dashboard/css/dashboard.css', function () {
+    return response()->file(base_path('Frontend/SuperAdmin-dashboard/css/dashboard.css'), [
+        'Content-Type' => 'text/css'
+    ]);
+});
+
+// Frontend SuperAdmin Dashboard JS Route
+Route::get('/frontend/superadmin-dashboard/js/dashboard.js', function () {
+    return response()->file(base_path('Frontend/SuperAdmin-dashboard/js/dashboard.js'), [
+        'Content-Type' => 'application/javascript'
+    ]);
+});
+
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('admin.login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
