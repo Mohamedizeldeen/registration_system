@@ -38,7 +38,10 @@
 
                 <!-- Mobile menu button -->
                 <div class="md:hidden">
-                    <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-gray-900 transition-colors duration-300">
+                    <button onclick="toggleMobileMenu()" 
+                            class="text-gray-600 hover:text-gray-900 transition-colors duration-300"
+                            aria-label="Toggle mobile menu"
+                            title="Open mobile navigation menu">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
@@ -53,7 +56,7 @@
                 <a href="#process" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">Process</a>
                 <a href="#testimonials" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">Testimonials</a>
                 <a href="#contact" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">Contact</a>
-                <a href="SuperAdmin-dashboard/index.html" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
+                <a href="dashboards/super-admin/index.html" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
                     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                 </a>
             </div>
@@ -67,9 +70,9 @@
             <svg viewBox="0 0 200 200" class="w-full h-full">
                 <defs>
                     <radialGradient id="earthGradient" cx="0.3" cy="0.3">
-                        <stop offset="0%" style="stop-color:#4285f4"/>
-                        <stop offset="70%" style="stop-color:#34a853"/>
-                        <stop offset="100%" style="stop-color:#1a73e8"/>
+                        <stop offset="0%" class="earth-gradient-stop-1"/>
+                        <stop offset="70%" class="earth-gradient-stop-2"/>
+                        <stop offset="100%" class="earth-gradient-stop-3"/>
                     </radialGradient>
                     <filter id="glow">
                         <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -92,8 +95,8 @@
         <!-- Background Elements -->
         <div class="absolute inset-0 pointer-events-none">
             <div class="absolute top-20 left-10 w-32 h-32 glass rounded-3xl float-element"></div>
-            <div class="absolute bottom-20 right-20 w-24 h-24 glass rounded-2xl float-element" style="animation-delay: 1s;"></div>
-            <div class="absolute top-1/2 left-1/4 w-16 h-16 glass rounded-xl float-element" style="animation-delay: 2s;"></div>
+            <div class="absolute bottom-20 right-20 w-24 h-24 glass rounded-2xl float-element delay-1s"></div>
+            <div class="absolute top-1/2 left-1/4 w-16 h-16 glass rounded-xl float-element delay-2s"></div>
         </div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -117,7 +120,7 @@
                 </p>
                 
                 <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                    <a href="SuperAdmin-dashboard/index.html" class="group btn-primary text-white px-10 py-5 rounded-full font-bold text-lg pulse-glow">
+                    <a href="dashboards/super-admin/index.html" class="group btn-primary text-white px-10 py-5 rounded-full font-bold text-lg pulse-glow">
                         <span class="relative z-10 flex items-center">
                             <i class="fas fa-tachometer-alt mr-3 group-hover:scale-110 transition-transform duration-300"></i>
                             SuperAdmin Dashboard
@@ -192,7 +195,7 @@
                             </div>
                         </div>
                         <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl float-element opacity-80"></div>
-                        <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl float-element opacity-60" style="animation-delay: 1s;"></div>
+                        <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl float-element opacity-60 delay-1s"></div>
                     </div>
                 </div>
             </div>
@@ -325,7 +328,7 @@
                             </div>
                         </div>
                         <div class="absolute top-4 right-4 w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl float-element"></div>
-                        <div class="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg float-element" style="animation-delay: 1s;"></div>
+                        <div class="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg float-element delay-1s"></div>
                     </div>
                 </div>
                 
@@ -505,7 +508,7 @@
         <!-- Background Earth and elements -->
         <div class="absolute inset-0 opacity-20">
             <div class="absolute top-20 left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl float-element"></div>
-            <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl float-element" style="animation-delay: 2s;"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl float-element delay-2s"></div>
             <!-- Small Earth in footer -->
             <div class="absolute top-10 right-10">
                 <svg width="120" height="120" viewBox="0 0 120 120" class="earth-rotate opacity-30">
@@ -546,13 +549,22 @@
                     
                     <!-- Social Links -->
                     <div class="flex space-x-6">
-                        <a href="#" class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20">
+                        <a href="#" 
+                           class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20"
+                           aria-label="Follow us on Twitter"
+                           title="Twitter">
                             <i class="fab fa-twitter text-white group-hover:scale-125 transition-transform duration-300"></i>
                         </a>
-                        <a href="#" class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20">
+                        <a href="#" 
+                           class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20"
+                           aria-label="Connect with us on LinkedIn"
+                           title="LinkedIn">
                             <i class="fab fa-linkedin text-white group-hover:scale-125 transition-transform duration-300"></i>
                         </a>
-                        <a href="#" class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20">
+                        <a href="#" 
+                           class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20"
+                           aria-label="View our GitHub repository"
+                           title="GitHub">
                             <i class="fab fa-github text-white group-hover:scale-125 transition-transform duration-300"></i>
                         </a>
                     </div>
@@ -568,7 +580,7 @@
                             <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>Technology</a></li>
                         <li><a href="#frontend-apps" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
                             <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>Applications</a></li>
-                        <li><a href="SuperAdmin-dashboard/index.html" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
+                        <li><a href="dashboards/super-admin/index.html" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
                             <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>Dashboard</a></li>
                     </ul>
                 </div>

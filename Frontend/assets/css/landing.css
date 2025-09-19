@@ -49,6 +49,28 @@ body {
     }
 }
 
+/* Animation Delay Utilities */
+.delay-1s {
+    animation-delay: 1s;
+}
+
+.delay-2s {
+    animation-delay: 2s;
+}
+
+/* SVG Gradient Stop Styles */
+.earth-gradient-stop-1 {
+    stop-color: #4285f4;
+}
+
+.earth-gradient-stop-2 {
+    stop-color: #34a853;
+}
+
+.earth-gradient-stop-3 {
+    stop-color: #1a73e8;
+}
+
 /* Floating Animation */
 .float-element {
     animation: floatMove 8s ease-in-out infinite;

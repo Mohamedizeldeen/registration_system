@@ -618,7 +618,7 @@ body {
     /* Mobile table responsiveness (if any) */
     .table-responsive {
         overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        /* -webkit-overflow-scrolling: touch; */ /* Deprecated property - removing */
     }
 }
 

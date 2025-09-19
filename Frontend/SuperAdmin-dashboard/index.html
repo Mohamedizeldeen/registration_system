@@ -92,7 +92,10 @@
 
                     <!-- Mobile menu button -->
                     <div class="lg:hidden">
-                        <button onclick="toggleMobileMenu()" class="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition duration-200">
+                        <button onclick="toggleMobileMenu()" 
+                                class="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition duration-200"
+                                aria-label="Toggle mobile menu"
+                                title="Open mobile navigation menu">
                             <i id="mobileMenuIcon" class="fas fa-bars"></i>
                         </button>
                     </div>
@@ -148,14 +151,16 @@
         </div>
 
         <!-- Error State -->
-        <div id="error" class="hidden min-h-96 flex items-center justify-center">
-            <div class="text-center">
-                <i class="fas fa-exclamation-triangle text-red-400 text-6xl mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
-                <p id="error-message" class="text-gray-500"></p>
-                <button onclick="loadDashboardData()" class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                    Try Again
-                </button>
+        <div id="error" class="hidden min-h-96">
+            <div class="flex items-center justify-center h-full">
+                <div class="text-center">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-6xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Dashboard</h3>
+                    <p id="error-message" class="text-gray-500"></p>
+                    <button onclick="loadDashboardData()" class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                        Try Again
+                    </button>
+                </div>
             </div>
         </div>
 
