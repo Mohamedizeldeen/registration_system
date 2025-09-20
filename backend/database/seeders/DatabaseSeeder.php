@@ -3,15 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Event;
-use App\Models\EventZone;
-use App\Models\Ticket;
-use App\Models\Coupon;
-use App\Models\Currency;
-use App\Models\Attendee;
-use App\Models\Payment;
 use Illuminate\Database\Seeder;
-use Faker\Factory as Faker;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,16 +13,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
-
-        // Create Super Admin User
-        User::factory()->create([
+        // Create Super Admin User directly without factory
+        User::create([
             'name' => 'Northline Developer',
             'email' => 'developer@northline-dev.com',
-            'password' => bcrypt('12345678'),
+            'password' => Hash::make('12345678'),
             'role' => 'super_admin',
+            'email_verified_at' => now(),
         ]);
-
-       
     }
- }
+}

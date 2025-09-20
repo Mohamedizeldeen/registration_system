@@ -6,11 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="format-detection" content="telephone=no">
     <title>SuperAdmin Dashboard - MFW Events</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/output.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="../assets/js/axios.min.js"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -338,9 +338,19 @@
         function addCurrency() {
             alert('Add Currency functionality would be implemented here');
         }
+        
+        // Initialize Axios client on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.AxiosAPI) {
+                AxiosAPI.init();
+                console.log('Axios client initialized and ready');
+            }
+        });
     </script>
     
-    <!-- External Dashboard JavaScript -->
+    <!-- External JavaScript Files -->
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/axios-client.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>

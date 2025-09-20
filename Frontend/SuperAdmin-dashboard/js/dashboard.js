@@ -1,9 +1,14 @@
 // Global variables
-let dashboardData = null;
-const API_BASE_URL = 'http://localhost:8000/api/SuperAdmin-dashboard';
+let dashboardData = {};
+const API_BASE_URL = 'http://127.0.0.1:8000/api/SuperAdmin-dashboard';
+
+// Simple test to verify axios is loaded
+console.log('Dashboard.js loaded, axios available:', typeof axios !== 'undefined');
+console.log('API_BASE_URL set to:', API_BASE_URL);
 
 // Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing dashboard...');
     loadDashboardData();
 });
 
@@ -11,21 +16,47 @@ document.addEventListener('DOMContentLoaded', function() {
 async function loadDashboardData() {
     try {
         showLoading();
+        console.log('Attempting to fetch data from:', API_BASE_URL);
         
         const response = await axios.get(API_BASE_URL, {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 10000 // 10 second timeout
         });
+        
+        console.log('API Response received:', response);
+        console.log('Real data fetched from database:');
+        console.log('- Events:', response.data.events?.length || 0);
+        console.log('- Users:', response.data.users?.length || 0);
+        console.log('- Attendees:', response.data.attendees?.length || 0);
+        console.log('- Payments:', response.data.payments?.length || 0);
+        console.log('- Companies:', response.data.companies?.length || 0);
         
         dashboardData = response.data;
         renderDashboard();
         hideLoading();
         
     } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        showError(error.response?.data?.message || error.message || 'Failed to fetch dashboard data');
+        console.error('Detailed error information:', {
+            message: error.message,
+            code: error.code,
+            response: error.response,
+            config: error.config
+        });
+        
+        let errorMessage = 'Failed to fetch dashboard data';
+        
+        if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+            errorMessage = `Network Error: Cannot connect to API server at ${API_BASE_URL}. Please ensure the backend server is running.`;
+        } else if (error.response) {
+            errorMessage = `API Error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = 'Connection refused: Backend server is not running or not accessible.';
+        }
+        
+        showError(errorMessage);
     }
 }
 
@@ -138,7 +169,7 @@ function renderRevenueChart() {
         window.revenueChart.destroy();
     }
 
-    // Sample data - in real implementation, this would come from API
+    // Calculate revenue data from API response
     const revenueData = calculateRevenueData();
     
     const ctx = canvas.getContext('2d');
@@ -258,7 +289,8 @@ function renderTopPerformingEvents() {
         container.innerHTML = `
             <div class="text-center py-8">
                 <i class="fas fa-calendar-times text-gray-400 text-3xl mb-3"></i>
-                <p class="text-gray-500">No events found</p>
+                <p class="text-gray-500">No events in database</p>
+                <p class="text-xs text-gray-400 mt-1">Real-time data from API</p>
             </div>
         `;
         return;
@@ -345,7 +377,8 @@ function renderRecentActivity() {
         container.innerHTML = `
             <div class="text-center py-8">
                 <i class="fas fa-clock text-gray-400 text-3xl mb-3"></i>
-                <p class="text-gray-500">No recent activity</p>
+                <p class="text-gray-500">No recent activity in database</p>
+                <p class="text-xs text-gray-400 mt-1">Live data from API</p>
             </div>
         `;
         return;
@@ -375,8 +408,9 @@ function renderUpcomingEvents() {
         container.innerHTML = `
             <div class="col-span-full text-center py-8">
                 <i class="fas fa-calendar-times text-gray-400 text-3xl mb-3"></i>
-                <p class="text-gray-500">No events found</p>
-                <span class="text-blue-600 text-sm font-medium">Create your first event</span>
+                <p class="text-gray-500">No events in database</p>
+                <p class="text-xs text-gray-400 mt-1">Real-time data from API</p>
+                <span class="text-blue-600 text-sm font-medium block mt-2">Create your first event</span>
             </div>
         `;
         return;
