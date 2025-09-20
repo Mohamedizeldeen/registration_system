@@ -4,6 +4,7 @@ import companyRoutes from "./routes/company.routes";
 import eventRoutes from "./routes/event.routes";
 import ticketRoutes from "./routes/ticket.routes";
 import couponRoutes from "./routes/coupon.routes";
+import eventZoneRoutes from "./routes/eventZone.routes";
 
 const app = express();
 const port = 3000;
@@ -14,6 +15,7 @@ app.use("/users", userRoutes);
 app.use("/coupons", couponRoutes);
 app.use("/companies", companyRoutes);
 app.use("/events", eventRoutes);
+app.use("/event-zones", eventZoneRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
