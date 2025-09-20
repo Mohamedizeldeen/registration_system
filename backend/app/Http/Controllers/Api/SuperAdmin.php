@@ -19,30 +19,54 @@ class SuperAdmin extends Controller
      */
 
     public function dashboard(){
-        $events = Event::all();
-        $users = User::all();
-        $companies = Company::all();
-        $attendees = Attendee::all();
-        $eventZones = EventZone::all();
-        $tickets = Ticket::all();
-        $payments = Payment::all();
+        try {
+            // Fetch real data from database
+            $events = Event::with(['attendees', 'eventZones'])->get();
+            $users = User::all();
+            $companies = Company::all();
+            $attendees = Attendee::with(['ticket', 'event'])->get();
+            $eventZones = EventZone::with('event')->get();
+            $tickets = Ticket::with(['event', 'eventZone', 'attendees'])->get();
+            $payments = Payment::with(['attendee', 'event', 'ticket'])->get();
 
-        $response = response()->json([
-            'events' => $events,
-            'users' => $users,
-            'companies' => $companies,
-            'attendees' => $attendees,
-            'eventZones' => $eventZones,
-            'tickets' => $tickets,
-            'payments' => $payments,
-        ], 200);
+            // Calculate statistics
+            $stats = [
+                'totalEvents' => $events->count(),
+                'totalUsers' => $users->count(),
+                'totalCompanies' => $companies->count(),
+                'totalAttendees' => $attendees->count(),
+                'totalTickets' => $tickets->count(),
+                'totalRevenue' => $payments->where('status', 'completed')->sum('amount'),
+                'pendingPayments' => $payments->where('status', 'pending')->count(),
+                'checkedInAttendees' => $attendees->where('checked_in', 1)->count(),
+            ];
 
-        // Add CORS headers to allow frontend access
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+            $response = response()->json([
+                'message' => 'Dashboard data loaded successfully',
+                'timestamp' => now(),
+                'stats' => $stats,
+                'events' => $events,
+                'users' => $users,
+                'companies' => $companies,
+                'attendees' => $attendees,
+                'eventZones' => $eventZones,
+                'tickets' => $tickets,
+                'payments' => $payments,
+            ], 200);
 
-        return $response;
+            // Add CORS headers to allow frontend access
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+            return $response;
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Dashboard API Error',
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
 
     public function upcomingEvents(){

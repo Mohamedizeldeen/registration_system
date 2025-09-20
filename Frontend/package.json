@@ -1,0 +1,54 @@
+{
+  "name": "@mfw-events/frontend",
+  "version": "1.0.0",
+  "description": "MFW Events Frontend Applications - Modern event management platform with multiple dashboard interfaces",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:css-prod && npm run copy:axios && live-server --port=3000 --host=localhost --entry-file=index.html",
+    "build": "npm run build:css-prod && npm run copy:axios",
+    "build:css": "npx tailwindcss -i ./assets/css/tailwind-input.css -o ./assets/css/output.css --watch",
+    "build:css-prod": "npx tailwindcss -i ./assets/css/tailwind-input.css -o ./assets/css/output.css --minify",
+    "copy:axios": "copy \"node_modules\\axios\\dist\\axios.min.js\" \"assets\\js\\axios.min.js\"",
+    "preview": "live-server --port=3001 --host=localhost --entry-file=index.html",
+    "optimize:css": "npm run build:css-prod",
+    "optimize:js": "echo \"JS optimization - Future implementation\"",
+    "lint:html": "echo \"HTML validation - Future implementation\"",
+    "lint:css": "echo \"CSS linting - Future implementation\"",
+    "lint:js": "echo \"JS linting - Future implementation\"",
+    "format": "echo \"Code formatting - Future implementation\"",
+    "test": "echo \"Frontend tests - Future implementation\""
+  },
+  "keywords": [
+    "event-management",
+    "frontend",
+    "dashboard",
+    "mfw-events",
+    "html",
+    "css",
+    "javascript"
+  ],
+  "author": "MFW Events Team",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohamedizeldeen/registration_system.git",
+    "directory": "Frontend"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "dependencies": {
+    "axios": "^1.12.2"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "tailwindcss": "^3.4.0"
+  }
+}

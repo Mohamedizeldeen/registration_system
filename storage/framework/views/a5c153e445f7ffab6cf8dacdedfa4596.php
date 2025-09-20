@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFW Events - Modern Event Management Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Modern CSS Variables */
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --dark: #1a1a2e;
+            --light: #edf2f7;
+        }
+        
+        /* Ultra-modern glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Advanced gradient animations */
+        .hero-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f093fb 60%, #667eea 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+        }
+        
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Floating elements */
+        .float-element {
+            animation: floatMove 8s ease-in-out infinite;
+        }
+        
+        @keyframes floatMove {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        /* Modern card effects */
+        .modern-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modern-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+        
+        .modern-card:hover::before {
+            left: 100%;
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Button effects */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 50px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* Scroll reveal animation */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .scroll-reveal.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Text gradient */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: textShimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes textShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Pulse effect */
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
+        }
+        
+        /* Earth rotation */
+        .earth-rotate {
+            animation: earthRotate 20s linear infinite;
+        }
+        
+        @keyframes earthRotate {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        
+        /* Section spacing */
+        .section-padding {
+            padding: 5rem 0;
+        }
+        
+        @media (min-width: 768px) {
+            .section-padding {
+                padding: 8rem 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 overflow-x-hidden">
+    <!-- Modern Navigation -->
+    <nav class="fixed w-full z-50 transition-all duration-500 bg-white/80 backdrop-blur-md border-b border-white/20" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 scroll-reveal">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center float-element shadow-lg">
+                        <i class="fas fa-calendar-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold gradient-text">MFW Events</h1>
+                        <p class="text-xs text-gray-600">Event Platform</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8 scroll-reveal">
+                    <a href="#about" class="text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 hover:scale-105">About</a>
+                    <a href="#services" class="text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 hover:scale-105">Services</a>
+                    <a href="#process" class="text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 hover:scale-105">Process</a>
+                    <a href="#contact" class="text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 hover:scale-105">Contact</a>
+                    <a href="<?php echo e(route('public.events')); ?>" class="btn-primary text-white px-6 py-2 rounded-full font-medium relative z-10 pulse-glow">
+                        Browse Events
+                    </a>
+                    
+                    <?php if(auth()->guard()->check()): ?>
+                        <?php if(auth()->user()->role === 'super_admin'): ?>
+                            <a href="<?php echo e(route('dashboard')); ?>" class="btn-primary text-white px-6 py-2 rounded-full font-medium relative z-10">
+                                <span class="relative z-10"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</span>
+                            </a>
+                        <?php elseif(auth()->user()->role === 'admin' || auth()->user()->role === 'company_admin'): ?>
+                            <a href="<?php echo e(route('company-admin.dashboard')); ?>" class="btn-primary text-white px-6 py-2 rounded-full font-medium relative z-10">
+                                <span class="relative z-10"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</span>
+                            </a>
+                        <?php elseif(auth()->user()->role === 'organizer' || auth()->user()->role === 'company_organizer'): ?>
+                            <a href="<?php echo e(route('company-organizer.dashboard')); ?>" class="btn-primary text-white px-6 py-2 rounded-full font-medium relative z-10">
+                                <span class="relative z-10"><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</span>
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <a href="<?php echo e(route('login')); ?>" class="btn-primary text-white px-6 py-2 rounded-full font-medium relative z-10">
+                            <span class="relative z-10"><i class="fas fa-sign-in-alt mr-2"></i>Login</span>
+                        </a>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-gray-900 transition-colors duration-300">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden glass-dark border-t border-white/10">
+            <div class="px-4 py-4 space-y-3">
+                <a href="#about" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">About</a>
+                <a href="#services" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">Services</a>
+                <a href="#process" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">Process</a>
+                <a href="#contact" class="block text-gray-700 hover:text-blue-600 font-medium transition-colors duration-300">Contact</a>
+                <a href="<?php echo e(route('public.events')); ?>" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
+                    Browse Events
+                </a>
+                
+                <?php if(auth()->guard()->check()): ?>
+                    <?php if(auth()->user()->role === 'super_admin'): ?>
+                        <a href="<?php echo e(route('dashboard')); ?>" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                    <?php elseif(auth()->user()->role === 'admin' || auth()->user()->role === 'company_admin'): ?>
+                        <a href="<?php echo e(route('company-admin.dashboard')); ?>" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                    <?php elseif(auth()->user()->role === 'organizer' || auth()->user()->role === 'company_organizer'): ?>
+                        <a href="<?php echo e(route('company-organizer.dashboard')); ?>" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <a href="<?php echo e(route('login')); ?>" class="block btn-primary text-white px-4 py-2 rounded-full font-medium text-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Login
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 1. Hero Section with Earth -->
+    <section class="hero-bg min-h-screen flex items-center justify-center pt-[8rem] pb-[6rem] relative overflow-hidden ">
+        <!-- Floating Earth SVG -->
+        <div class="absolute top-1/4 right-10 w-64 h-64 opacity-20 earth-rotate">
+            <svg viewBox="0 0 200 200" class="w-full h-full">
+                <defs>
+                    <radialGradient id="earthGradient" cx="0.3" cy="0.3">
+                        <stop offset="0%" style="stop-color:#4285f4"/>
+                        <stop offset="70%" style="stop-color:#34a853"/>
+                        <stop offset="100%" style="stop-color:#1a73e8"/>
+                    </radialGradient>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <circle cx="100" cy="100" r="80" fill="url(#earthGradient)" filter="url(#glow)"/>
+                <path d="M 40 80 Q 60 70 80 80 Q 100 90 120 80 Q 140 70 160 80" fill="none" stroke="#2d7d32" stroke-width="3"/>
+                <path d="M 50 120 Q 70 110 90 120 Q 110 130 130 120 Q 150 110 170 120" fill="none" stroke="#2d7d32" stroke-width="2"/>
+                <circle cx="70" cy="90" r="8" fill="#2d7d32"/>
+                <circle cx="130" cy="110" r="12" fill="#2d7d32"/>
+                <circle cx="100" cy="140" r="6" fill="#2d7d32"/>
+                <circle cx="140" cy="70" r="4" fill="#2d7d32"/>
+            </svg>
+        </div>
+        
+        <!-- Background Elements -->
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="absolute top-20 left-10 w-32 h-32 glass rounded-3xl float-element"></div>
+            <div class="absolute bottom-20 right-20 w-24 h-24 glass rounded-2xl float-element" style="animation-delay: 1s;"></div>
+            <div class="absolute top-1/2 left-1/4 w-16 h-16 glass rounded-xl float-element" style="animation-delay: 2s;"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <div class="scroll-reveal">
+                <!-- Modern badge -->
+                <div class="inline-flex items-center glass rounded-full px-6 py-2 mb-8 border border-white/30">
+                    <span class="w-2 h-2 bg-green-400 rounded-full mr-3 pulse-glow"></span>
+                    <span class="text-white/90 text-sm font-medium">Professional Event Management • Live</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-black text-white mb-8 leading-tight">
+                    Modern Event
+                    <br>
+                    <span class="gradient-text bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-200 to-purple-200">
+                        Management Platform
+                    </span>
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
+                    Streamline your events with our comprehensive platform featuring QR code tickets, 
+                    real-time analytics, and seamless attendee management.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                    <a href="<?php echo e(route('public.events')); ?>" class="group btn-primary text-white px-10 py-5 rounded-full font-bold text-lg pulse-glow">
+                        <span class="relative z-10 flex items-center">
+                            <i class="fas fa-calendar-check mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                            Browse Events
+                        </span>
+                    </a>
+                    
+                    <?php if(auth()->guard()->check()): ?>
+                        <?php if(auth()->user()->role === 'super_admin'): ?>
+                            <a href="<?php echo e(route('dashboard')); ?>" class="group glass border border-white/30 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all duration-300">
+                                <span class="flex items-center">
+                                    <i class="fas fa-tachometer-alt mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                                    Dashboard
+                                </span>
+                            </a>
+                        <?php elseif(auth()->user()->role === 'admin' || auth()->user()->role === 'company_admin'): ?>
+                            <a href="<?php echo e(route('company-admin.dashboard')); ?>" class="group glass border border-white/30 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all duration-300">
+                                <span class="flex items-center">
+                                    <i class="fas fa-tachometer-alt mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                                    Dashboard
+                                </span>
+                            </a>
+                        <?php elseif(auth()->user()->role === 'organizer' || auth()->user()->role === 'company_organizer'): ?>
+                            <a href="<?php echo e(route('company-organizer.dashboard')); ?>" class="group glass border border-white/30 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all duration-300">
+                                <span class="flex items-center">
+                                    <i class="fas fa-tachometer-alt mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                                    Dashboard
+                                </span>
+                            </a>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <a href="<?php echo e(route('login')); ?>" class="group glass border border-white/30 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all duration-300">
+                            <span class="flex items-center">
+                                <i class="fas fa-sign-in-alt mr-3 group-hover:scale-110 transition-transform duration-300"></i>
+                                Get Started
+                            </span>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Stats -->
+            <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 scroll-reveal">
+                <div class="modern-card rounded-2xl p-8">
+                    <div class="text-4xl font-black text-white mb-3">10K+</div>
+                    <div class="text-white/70 text-lg">Events Managed</div>
+                </div>
+                
+                <div class="modern-card rounded-2xl p-8">
+                    <div class="text-4xl font-black text-white mb-3">250K+</div>
+                    <div class="text-white/70 text-lg">Tickets Sold</div>
+                </div>
+                
+                <div class="modern-card rounded-2xl p-8">
+                    <div class="text-4xl font-black text-white mb-3">99.9%</div>
+                    <div class="text-white/70 text-lg">Uptime</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. About Section -->
+    <section id="about" class="section-padding bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="scroll-reveal">
+                    <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                        About <span class="gradient-text">MFW Events</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                        We're revolutionizing event management with cutting-edge technology that makes organizing events effortless and engaging.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-4"></div>
+                            <span class="text-gray-700 font-medium">Founded in 2023 with a vision for seamless events</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mr-4"></div>
+                            <span class="text-gray-700 font-medium">Trusted by 1000+ event organizers worldwide</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-full mr-4"></div>
+                            <span class="text-gray-700 font-medium">24/7 support and continuous innovation</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-reveal">
+                    <div class="relative">
+                        <div class="aspect-w-16 aspect-h-12 rounded-3xl overflow-hidden">
+                            <div class="w-full h-96 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center">
+                                <div class="text-center">
+                                    <i class="fas fa-users text-6xl text-blue-600 mb-4"></i>
+                                    <p class="text-gray-700 font-semibold text-xl">Professional Team</p>
+                                    <p class="text-gray-500">Dedicated to your success</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl float-element opacity-80"></div>
+                        <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl float-element opacity-60" style="animation-delay: 1s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Services Section -->
+    <section id="services" class="section-padding bg-gradient-to-br from-gray-50 to-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                    Our <span class="gradient-text">Services</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Comprehensive event management solutions tailored to your needs
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- QR Code Tickets -->
+                <div class="modern-card rounded-3xl p-8 bg-white/50 scroll-reveal">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-6 float-element">
+                        <i class="fas fa-qrcode text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">QR Code Tickets</h3>
+                    <p class="text-gray-600 mb-6">
+                        Generate unique QR codes for each attendee with instant validation and secure check-in process.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Unique codes per attendee</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Real-time validation</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Mobile-friendly scanning</li>
+                    </ul>
+                </div>
+
+                <!-- Event Management -->
+                <div class="modern-card rounded-3xl p-8 bg-white/50 scroll-reveal">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center mb-6 float-element">
+                        <i class="fas fa-calendar-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Event Creation</h3>
+                    <p class="text-gray-600 mb-6">
+                        Create and manage events with multiple zones, ticket types, and detailed configurations.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Multi-zone events</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Flexible ticket pricing</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Custom event settings</li>
+                    </ul>
+                </div>
+
+                <!-- Registration System -->
+                <div class="modern-card rounded-3xl p-8 bg-white/50 scroll-reveal">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl flex items-center justify-center mb-6 float-element">
+                        <i class="fas fa-user-plus text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Public Registration</h3>
+                    <p class="text-gray-600 mb-6">
+                        Enable attendees to register themselves with a beautiful, mobile-responsive interface.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Self-service registration</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Integrated payments</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Instant confirmations</li>
+                    </ul>
+                </div>
+
+                <!-- Analytics -->
+                <div class="modern-card rounded-3xl p-8 bg-white/50 scroll-reveal">
+                    <div class="w-16 h-16 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-2xl flex items-center justify-center mb-6 float-element">
+                        <i class="fas fa-chart-line text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Real-time Analytics</h3>
+                    <p class="text-gray-600 mb-6">
+                        Track registrations, attendance, revenue, and engagement with detailed dashboards.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Live attendance tracking</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Revenue monitoring</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Export capabilities</li>
+                    </ul>
+                </div>
+
+                <!-- Company Management -->
+                <div class="modern-card rounded-3xl p-8 bg-white/50 scroll-reveal">
+                    <div class="w-16 h-16 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center mb-6 float-element">
+                        <i class="fas fa-building text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Company Management</h3>
+                    <p class="text-gray-600 mb-6">
+                        Multi-company support with complete data isolation and role-based access control.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Data isolation</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Role-based permissions</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Custom branding</li>
+                    </ul>
+                </div>
+
+                <!-- Mobile Optimization -->
+                <div class="modern-card rounded-3xl p-8 bg-white/50 scroll-reveal">
+                    <div class="w-16 h-16 bg-gradient-to-r from-red-600 to-pink-600 rounded-2xl flex items-center justify-center mb-6 float-element">
+                        <i class="fas fa-mobile-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Mobile Optimized</h3>
+                    <p class="text-gray-600 mb-6">
+                        Fully responsive design that works perfectly on all devices and screen sizes.
+                    </p>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Responsive design</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Touch-friendly interface</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i>Fast performance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Process Section -->
+    <section id="process" class="section-padding bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
+                    How It <span class="gradient-text bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">Works</span>
+                </h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto">
+                    Simple, intuitive process from event creation to attendee management
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Step 1 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 float-element">
+                        <span class="text-white font-black text-2xl">1</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Create Event</h3>
+                    <p class="text-white/70">Set up your event with zones, ticket types, and configurations.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 float-element">
+                        <span class="text-white font-black text-2xl">2</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Share Registration</h3>
+                    <p class="text-white/70">Share the registration link for attendees to register online.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 float-element">
+                        <span class="text-white font-black text-2xl">3</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Generate QR Codes</h3>
+                    <p class="text-white/70">Unique QR codes are automatically generated for each attendee.</p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="text-center scroll-reveal">
+                    <div class="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 float-element">
+                        <span class="text-white font-black text-2xl">4</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">Check-in & Track</h3>
+                    <p class="text-white/70">Scan QR codes for instant check-in and real-time analytics.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Technology Section -->
+    <section class="section-padding bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <div class="scroll-reveal">
+                    <div class="relative">
+                        <div class="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-code text-6xl text-gray-600 mb-4"></i>
+                                <p class="text-gray-700 font-semibold text-xl">Modern Technology</p>
+                                <p class="text-gray-500">Laravel • Tailwind CSS • MySQL</p>
+                            </div>
+                        </div>
+                        <div class="absolute top-4 right-4 w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl float-element"></div>
+                        <div class="absolute bottom-4 left-4 w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg float-element" style="animation-delay: 1s;"></div>
+                    </div>
+                </div>
+                
+                <div class="scroll-reveal">
+                    <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                        Built with <span class="gradient-text">Modern Tech</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 mb-8 leading-relaxed">
+                        Our platform is built using the latest technologies to ensure reliability, security, and exceptional performance.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-blue-50 to-blue-100">
+                            <i class="fab fa-laravel text-3xl text-red-600 mb-3"></i>
+                            <h4 class="font-bold text-gray-900">Laravel</h4>
+                            <p class="text-gray-600 text-sm">Robust backend framework</p>
+                        </div>
+                        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-green-50 to-green-100">
+                            <i class="fas fa-database text-3xl text-blue-600 mb-3"></i>
+                            <h4 class="font-bold text-gray-900">MySQL</h4>
+                            <p class="text-gray-600 text-sm">Reliable data storage</p>
+                        </div>
+                        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-purple-50 to-purple-100">
+                            <i class="fab fa-css3-alt text-3xl text-blue-500 mb-3"></i>
+                            <h4 class="font-bold text-gray-900">Tailwind CSS</h4>
+                            <p class="text-gray-600 text-sm">Modern styling</p>
+                        </div>
+                        <div class="modern-card rounded-2xl p-6 bg-gradient-to-br from-yellow-50 to-yellow-100">
+                            <i class="fab fa-js-square text-3xl text-yellow-600 mb-3"></i>
+                            <h4 class="font-bold text-gray-900">JavaScript</h4>
+                            <p class="text-gray-600 text-sm">Interactive experiences</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Testimonials Section -->
+    <section class="section-padding bg-gradient-to-br from-gray-50 to-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-6">
+                    What Our <span class="gradient-text">Clients Say</span>
+                </h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                    Don't just take our word for it - hear from satisfied customers
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Testimonial 1 -->
+                <div class="modern-card rounded-3xl p-8 bg-white scroll-reveal">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">JS</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900">John Smith</h4>
+                            <p class="text-gray-600 text-sm">Event Organizer</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">
+                        "MFW Events transformed how we manage our conferences. The QR code system is brilliant!"
+                    </p>
+                    <div class="flex text-yellow-400 mt-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <!-- Testimonial 2 -->
+                <div class="modern-card rounded-3xl p-8 bg-white scroll-reveal">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">MJ</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900">Maria Johnson</h4>
+                            <p class="text-gray-600 text-sm">Corporate Events</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">
+                        "The analytics dashboard gives us incredible insights into attendee behavior and engagement."
+                    </p>
+                    <div class="flex text-yellow-400 mt-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+
+                <!-- Testimonial 3 -->
+                <div class="modern-card rounded-3xl p-8 bg-white scroll-reveal">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
+                            <span class="text-white font-bold">RD</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-900">Robert Davis</h4>
+                            <p class="text-gray-600 text-sm">Festival Director</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 italic">
+                        "Self-registration feature saved us countless hours. Our attendees love the smooth experience."
+                    </p>
+                    <div class="flex text-yellow-400 mt-4">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. Statistics Section -->
+    <section class="section-padding bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 scroll-reveal">
+                <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
+                    Platform <span class="text-blue-200">Statistics</span>
+                </h2>
+                <p class="text-xl text-white/80 max-w-3xl mx-auto">
+                    Real numbers that showcase our platform's impact and reliability
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center scroll-reveal">
+                    <div class="text-5xl font-black text-white mb-2">10K+</div>
+                    <div class="text-white/80 text-lg">Events Created</div>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="text-5xl font-black text-white mb-2">250K+</div>
+                    <div class="text-white/80 text-lg">Attendees Registered</div>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="text-5xl font-black text-white mb-2">1M+</div>
+                    <div class="text-white/80 text-lg">QR Codes Generated</div>
+                </div>
+                
+                <div class="text-center scroll-reveal">
+                    <div class="text-5xl font-black text-white mb-2">99.9%</div>
+                    <div class="text-white/80 text-lg">Uptime Guarantee</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. CTA Section -->
+   
+
+    <!-- 9. Modern Footer -->
+    <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
+        <!-- Background Earth and elements -->
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-20 left-20 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl float-element"></div>
+            <div class="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl float-element" style="animation-delay: 2s;"></div>
+            <!-- Small Earth in footer -->
+            <div class="absolute top-10 right-10">
+                <svg width="120" height="120" viewBox="0 0 120 120" class="earth-rotate opacity-30">
+                    <defs>
+                        <radialGradient id="earthGradientFooter" cx="30%" cy="30%">
+                            <stop offset="0%" stop-color="#4FC3F7"/>
+                            <stop offset="70%" stop-color="#29B6F6"/>
+                            <stop offset="100%" stop-color="#0277BD"/>
+                        </radialGradient>
+                    </defs>
+                    <circle cx="60" cy="60" r="50" fill="url(#earthGradientFooter)"/>
+                    <!-- Simplified continents -->
+                    <path d="M 30 40 Q 50 35 70 45 Q 85 50 90 65 Q 85 80 70 85 Q 50 90 30 85 Q 15 80 10 65 Q 15 50 30 40" 
+                          fill="#2E7D32" opacity="0.8"/>
+                    <path d="M 70 25 Q 85 30 95 45 Q 90 55 80 60 Q 70 55 65 45 Q 70 35 70 25" 
+                          fill="#388E3C" opacity="0.7"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 section-padding">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <!-- Brand Column -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center float-element shadow-2xl">
+                            <i class="fas fa-calendar-alt text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl font-black gradient-text bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">MFW Events</h3>
+                            <p class="text-gray-400 text-lg font-medium">Modern Event Platform</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-300 mb-8 max-w-lg text-lg leading-relaxed">
+                        Transforming event management with cutting-edge technology, 
+                        secure QR codes, and seamless experiences for organizers and attendees.
+                    </p>
+                    
+                    <!-- Social Links -->
+                    <div class="flex space-x-6">
+                        <a href="#" class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20">
+                            <i class="fab fa-twitter text-white group-hover:scale-125 transition-transform duration-300"></i>
+                        </a>
+                        <a href="#" class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20">
+                            <i class="fab fa-linkedin text-white group-hover:scale-125 transition-transform duration-300"></i>
+                        </a>
+                        <a href="#" class="group w-12 h-12 glass rounded-xl flex items-center justify-center hover:scale-110 transition-all duration-300 border border-white/20">
+                            <i class="fab fa-github text-white group-hover:scale-125 transition-transform duration-300"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-xl font-bold mb-8 text-white">Quick Links</h4>
+                    <ul class="space-y-4">
+                        <li><a href="#about" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
+                            <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>About Us</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
+                            <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>Services</a></li>
+                        <li><a href="#process" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
+                            <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>How It Works</a></li>
+                        <li><a href="<?php echo e(route('public.events')); ?>" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
+                            <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>Browse Events</a></li>
+                        <?php if(auth()->guard()->guest()): ?>
+                            <li><a href="<?php echo e(route('login')); ?>" class="text-gray-400 hover:text-white transition-colors duration-300 text-lg font-medium flex items-center">
+                                <i class="fas fa-chevron-right mr-3 text-blue-400 text-sm"></i>Login</a></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div id="contact">
+                    <h4 class="text-xl font-bold mb-8 text-white">Contact</h4>
+                    <ul class="space-y-6">
+                        <li class="flex items-center text-gray-300">
+                            <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-envelope text-white"></i>
+                            </div>
+                            <span class="text-lg">support@mfw.com</span>
+                        </li>
+                        <li class="flex items-center text-gray-300">
+                            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-phone text-white"></i>
+                            </div>
+                            <span class="text-lg">+1 (555) 123-4567</span>
+                        </li>
+                        <li class="flex items-center text-gray-300">
+                            <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-map-marker-alt text-white"></i>
+                            </div>
+                            <span class="text-lg">Global Platform</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-white/20 mt-16 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-400 text-lg mb-4 md:mb-0">
+                        &copy; 2025 MFW Events. Crafted with 
+                        <span class="text-red-400 pulse-glow">❤️</span> 
+                        for amazing events.
+                    </p>
+                    <div class="flex space-x-8 text-gray-400">
+                        <a href="#" class="hover:text-white transition-colors duration-300 font-medium">Privacy</a>
+                        <a href="#" class="hover:text-white transition-colors duration-300 font-medium">Terms</a>
+                        <a href="#" class="hover:text-white transition-colors duration-300 font-medium">Support</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modern JavaScript -->
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Modern navbar effects
+        window.addEventListener('scroll', function() {
+            const nav = document.getElementById('navbar');
+            const scrolled = window.scrollY;
+            
+            if (scrolled > 100) {
+                nav.classList.add('bg-white/95', 'backdrop-blur-xl', 'shadow-lg');
+                nav.classList.remove('bg-white/80');
+            } else {
+                nav.classList.add('bg-white/80');
+                nav.classList.remove('bg-white/95', 'backdrop-blur-xl', 'shadow-lg');
+            }
+        });
+
+        // Scroll reveal animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Initialize scroll reveal
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+
+        // Page load animation
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '1';
+        });
+    </script>
+</body>
+</html>
+<?php /**PATH C:\laragon\www\registration_system\resources\views/landing.blade.php ENDPATH**/ ?>
