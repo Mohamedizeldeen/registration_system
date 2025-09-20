@@ -4,7 +4,7 @@ import { getUsers,addUser } from "../controllers/user.Controller";
 const router = Router();
 
 router.get("/", getUsers);
-router.post("/create", addUser);
+router.post("/", addUser);
 
 
 export default router;

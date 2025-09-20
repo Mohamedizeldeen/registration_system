@@ -7,8 +7,8 @@ export const getCompanies = async (req: Request, res: Response) => {
 };
 
 export const addCompany = async (req: Request, res: Response) => {
-    const name = req.body;
-    const newCompany = await createCompany(name);
+    const { name, address, phone, email } = req.body;
+    const newCompany = await createCompany(name, address, phone, email);
     res.status(201).json(newCompany);
 };
 export const getCompany = async (req: Request, res: Response) => {
@@ -23,7 +23,7 @@ export const removeCompany = async (req: Request, res: Response) => {
 }
 export const editCompany = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { name } = req.body;
-    const updatedCompany = await updateCompany(Number(id), name);
+    const { name, address, phone, email } = req.body;
+    const updatedCompany = await updateCompany(Number(id), name, address, phone, email);
     res.json(updatedCompany);
 };

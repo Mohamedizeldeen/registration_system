@@ -6,10 +6,13 @@ export const getAllCompanies = async () => {
   return prisma.company.findMany();
 }
 
-export const createCompany = async (name: string) => {
+export const createCompany = async (name: string , address: string , phone: string , email: string) => {
   return prisma.company.create({
     data: {
       name,
+      address,
+      phone,
+      email
     }
   });
 }
@@ -22,9 +25,9 @@ export const deleteCompany = async (id: number) => {
   return prisma.company.delete({ where: { id } });
 }
 
-export const updateCompany = async (id: number, name: string) => {
+export const updateCompany = async (id: number, name: string, address: string, phone: string, email: string) => {
   return prisma.company.update({
     where: { id },
-    data: { name }
+    data: { name, address, phone, email }
   });
 }
