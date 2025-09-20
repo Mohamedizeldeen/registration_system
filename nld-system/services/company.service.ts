@@ -7,6 +7,7 @@ export const getAllCompanies = async () => {
 }
 
 export const createCompany = async (name: string , address: string , phone: string , email: string) => {
+ 
   return prisma.company.create({
     data: {
       name,

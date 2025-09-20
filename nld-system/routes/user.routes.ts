@@ -6,5 +6,4 @@ const router = Router();
 router.get("/", getUsers);
 router.post("/", addUser);
 
-
 export default router;
