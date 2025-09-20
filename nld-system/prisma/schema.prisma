@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  name              String
+  companyId         Int?      // Foreign key to Company, nullable
+  company           Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  email             String    @unique
+  emailVerifiedAt   DateTime?
+  password          String
+  role              Role      @default(organizer)
+  rememberToken     String?   // Laravel's remember_token is nullable
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  sessions          Session[]
+}
+
+enum Role {
+  admin
+  organizer
+  super_admin
+}
+
+model PasswordResetToken {
+  email     String   @id
+  token     String
+  createdAt DateTime?
+}
+
+model Session {
+  id          String   @id
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
+  ipAddress   String?  @db.VarChar(45)
+  userAgent   String?
+  payload     String
+  lastActivity Int
+}
+
+model Company {
+  id      Int     @id @default(autoincrement())
+  companyUsers User[]
+  events Event[]
+  name    String
+  address String? // nullable
+  phone   String? // nullable
+  email   String? // nullable
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Event {
+  id           Int      @id @default(autoincrement())
+  companyId    Int
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  eventZones   EventZone[]
+  tickets      Ticket[]
+  attendees    Attendee[]
+  payments     Payment[]
+  name         String
+  logo         String?
+  description  String
+  type         EventType
+  startTime    DateTime @db.Time
+  endTime      DateTime @db.Time
+  eventDate        DateTime @db.Date
+  eventEndDate    DateTime @db.Date
+  bannerUrl    String?
+  email        String?
+  phone        String?
+  location     String?
+  facebook     String?
+  instagram    String?
+  linkedin     String?
+  website      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum EventType {
+  hybrid
+  virtual
+  onsite
+}
+
+model Ticket {
+  id           Int        @id @default(autoincrement())
+  eventId      Int?
+  event        Event?      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventZoneId  Int?
+  eventZone    EventZone?  @relation(fields: [eventZoneId], references: [id], onDelete: Cascade)
+  couponId     Int?
+  coupon       Coupon?    @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  name         String?
+  attendees   Attendee[]
+  payments    Payment[]
+  info         String?
+  price        Decimal    @db.Decimal(8, 2) @default("0.00")
+  quantity     Int        @default(1)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Coupon {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  tickets     Ticket[]
+  discount    Decimal  @db.Decimal(8, 2)
+  expiryDate  DateTime? @db.Date
+  usageCount  Int      @default(0)
+  maxUsage    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EventZone {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  tickets   Ticket[]
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name      String
+  capacity  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model Attendee {
+  id           Int      @id @default(autoincrement())
+  ticketId     Int?
+  ticket       Ticket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  eventId      Int?
+  event        Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  firstName    String
+  payments     Payment[]
+  lastName     String
+  email        String?
+  phone        String?
+  company      String?
+  checkedIn    Boolean  @default(false)
+  checkedInAt  DateTime?
+  jobTitle     String?
+  country      String?
+  qrCode       String?  // text, nullable
+  qrCodeData   String?  @unique // string, unique, nullable
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Payment {
+  id             Int       @id @default(autoincrement())
+  attendeeId     Int?
+  attendee       Attendee?  @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
+  eventId        Int?
+  event          Event?     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketId       Int?
+  ticket         Ticket?    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  amount         Decimal   @db.Decimal(8, 2)
+  currency       String?
+  transactionId  String?
+  paymentDate    DateTime? @db.Date
+  paymentMethod  String?
+  status         PaymentStatus @default(pending)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+enum PaymentStatus {
+  pending
+  completed
+  failed
+}
