@@ -7,6 +7,7 @@ import couponRoutes from "./routes/coupon.routes";
 import eventZoneRoutes from "./routes/eventZone.routes";
 import attendeeRoutes from "./routes/attendee.route";
 import paymentRoutes from "./routes/payment.route";
+import superAdminRoutes from "./routes/SuperAdmin.route";
 
 const app = express();
 const port = 3000;
@@ -20,6 +21,7 @@ app.use("/events", eventRoutes);
 app.use("/event-zones", eventZoneRoutes);
 app.use("/attendees", attendeeRoutes);
 app.use("/payments", paymentRoutes);
+app.use("/super-admin", superAdminRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
