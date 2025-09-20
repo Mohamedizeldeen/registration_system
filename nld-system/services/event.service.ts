@@ -3,14 +3,23 @@ import { PrismaClient , EventType, Prisma } from "../generated/prisma";
 const prisma = new PrismaClient();
 
 export const getAllEvents = async () => {
+  if (!prisma.event) {
+      throw new Error("Event model is not available in Prisma Client");
+  } 
   return prisma.event.findMany();
 };
 
 export const getEventById = async (id: number) => {
+  if (!id) {
+      throw new Error("Event ID is required");
+  }
   return prisma.event.findUnique({ where: { id } });
 }
 
 export const deleteEvent = async (id: number) => {
+  if (!id) {
+      throw new Error("Event ID is required");
+  }
   return prisma.event.delete({ where: { id } });
 }
 
@@ -34,6 +43,9 @@ export const createEvent = async (
     linkedin?: string,
     logo?: string 
 ) => {
+  if (!name || !companyId || !description || !type || !startTime || !endTime || !eventDate || !eventEndDate) {
+      throw new Error("All required fields must be provided");
+  }
   const data: Prisma.EventUncheckedCreateInput = {
     name,
     companyId,
@@ -79,6 +91,12 @@ export const updateEvent = async (
     linkedin?: string,
     logo?: string
 ) => {
+    if (!id) {
+        throw new Error("Event ID is required");
+    }
+    if (!name || !companyId || !description || !type || !startTime || !endTime || !eventDate || !eventEndDate) {
+        throw new Error("All required fields must be provided");
+    }
     const data: Prisma.EventUncheckedUpdateInput = {
         name,
         companyId,
