@@ -10,7 +10,7 @@ export const fetchAllDataForDashboard = async () => {
             getAllEventZones(),
             getAllTickets(),
             getAllUsers(),
-            getAllPayments()
+            getAllPayments(),
         ]);
         return { companies, events, eventZones, tickets, users, payments };
     } catch (error) {
@@ -59,3 +59,4 @@ export const getAllPayments = async () => {
     }
     return prisma.payment.findMany();
 };
+
