@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register New Attendee | Event Registration System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading-overlay { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(2px); 
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 loading-overlay items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Registering attendee...</p>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-6">
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Register New Attendee</h1>
+                    <p class="text-gray-600 mt-2">Register a new attendee for an event</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alertContainer" class="max-w-4xl mx-auto px-4 pt-4 hidden">
+        <div id="alertMessage" class="px-4 py-3 rounded relative" role="alert">
+            <span id="alertText"></span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="p-6">
+                <form id="attendeeForm" class="space-y-6">
+                    <!-- Personal Information -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Personal Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">
+                                    First Name <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="firstName" 
+                                       name="first_name"
+                                       required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Enter first name">
+                                <div id="firstNameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Last Name <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="lastName" 
+                                       name="last_name"
+                                       required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Enter last name">
+                                <div id="lastNameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address <span class="text-red-500">*</span>
+                                </label>
+                                <input type="email" 
+                                       id="email" 
+                                       name="email"
+                                       required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Enter email address">
+                                <div id="emailError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number
+                                </label>
+                                <input type="tel" 
+                                       id="phone" 
+                                       name="phone"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Enter phone number">
+                                <div id="phoneError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Information -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Event Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="eventId" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Event <span class="text-red-500">*</span>
+                                </label>
+                                <select id="eventId" 
+                                        name="event_id"
+                                        required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Choose an event...</option>
+                                </select>
+                                <div id="eventIdError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            </div>
+                            <div>
+                                <label for="ticketId" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Ticket Type <span class="text-red-500">*</span>
+                                </label>
+                                <select id="ticketId" 
+                                        name="ticket_id"
+                                        required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Choose a ticket type...</option>
+                                </select>
+                                <div id="ticketIdError" class="text-red-500 text-sm mt-1 hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Registration Status
+                                </label>
+                                <select id="status" 
+                                        name="status"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="pending">Pending</option>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="company" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Company/Organization
+                                </label>
+                                <input type="text" 
+                                       id="company" 
+                                       name="company"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Enter company name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Requirements -->
+                    <div>
+                        <label for="specialRequirements" class="block text-sm font-medium text-gray-700 mb-2">
+                            Special Requirements/Notes
+                        </label>
+                        <textarea id="specialRequirements" 
+                                  name="special_requirements"
+                                  rows="4"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Enter any special requirements, dietary restrictions, accessibility needs, etc."></textarea>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t">
+                        <a href="index.html" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200">
+                            Cancel
+                        </a>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200">
+                            <i class="fas fa-save mr-2"></i>Register Attendee
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include API Configuration -->
+    <script src="../assets/js/api.js"></script>
+    <script>
+        let events = [];
+        let tickets = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEvents();
+            loadTickets();
+            setupEventHandlers();
+        });
+
+        // Load events for dropdown
+        async function loadEvents() {
+            try {
+                const response = await EventAPI.getAll();
+                events = response.data;
+                populateEventDropdown();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showAlert('Error loading events. Please try again.', 'error');
+            }
+        }
+
+        // Load tickets for dropdown
+        async function loadTickets() {
+            try {
+                const response = await TicketAPI.getAll();
+                tickets = response.data;
+                populateTicketDropdown();
+            } catch (error) {
+                console.error('Error loading tickets:', error);
+                showAlert('Error loading tickets. Please try again.', 'error');
+            }
+        }
+
+        // Populate event dropdown
+        function populateEventDropdown() {
+            const eventSelect = document.getElementById('eventId');
+            eventSelect.innerHTML = '<option value="">Choose an event...</option>';
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = `${event.name} - ${event.date}`;
+                eventSelect.appendChild(option);
+            });
+        }
+
+        // Populate ticket dropdown
+        function populateTicketDropdown() {
+            const ticketSelect = document.getElementById('ticketId');
+            ticketSelect.innerHTML = '<option value="">Choose a ticket type...</option>';
+            
+            tickets.forEach(ticket => {
+                const option = document.createElement('option');
+                option.value = ticket.id;
+                option.textContent = `${ticket.type} - $${ticket.price}`;
+                ticketSelect.appendChild(option);
+            });
+        }
+
+        // Filter tickets based on selected event
+        function filterTicketsByEvent(eventId) {
+            const ticketSelect = document.getElementById('ticketId');
+            ticketSelect.innerHTML = '<option value="">Choose a ticket type...</option>';
+            
+            const eventTickets = tickets.filter(ticket => ticket.event_id == eventId);
+            eventTickets.forEach(ticket => {
+                const option = document.createElement('option');
+                option.value = ticket.id;
+                option.textContent = `${ticket.type} - $${ticket.price}`;
+                ticketSelect.appendChild(option);
+            });
+        }
+
+        // Setup event handlers
+        function setupEventHandlers() {
+            // Event selection change handler
+            document.getElementById('eventId').addEventListener('change', function() {
+                const eventId = this.value;
+                if (eventId) {
+                    filterTicketsByEvent(eventId);
+                } else {
+                    populateTicketDropdown();
+                }
+            });
+
+            // Form submission
+            document.getElementById('attendeeForm').addEventListener('submit', handleFormSubmit);
+
+            // Real-time validation
+            const fields = ['firstName', 'lastName', 'email', 'phone', 'eventId', 'ticketId'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('blur', () => validateField(fieldId));
+                    field.addEventListener('input', () => clearFieldError(fieldId));
+                }
+            });
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            try {
+                showLoading();
+                
+                const formData = new FormData(e.target);
+                const attendeeData = Object.fromEntries(formData.entries());
+                
+                const response = await AttendeeAPI.create(attendeeData);
+                
+                showAlert('Attendee registered successfully!', 'success');
+                
+                // Reset form after successful creation
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error creating attendee:', error);
+                
+                if (error.response && error.response.data && error.response.data.errors) {
+                    displayValidationErrors(error.response.data.errors);
+                } else {
+                    showAlert('Error registering attendee. Please try again.', 'error');
+                }
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Validate entire form
+        function validateForm() {
+            let isValid = true;
+            
+            const requiredFields = ['firstName', 'lastName', 'email', 'eventId', 'ticketId'];
+            
+            requiredFields.forEach(fieldId => {
+                if (!validateField(fieldId)) {
+                    isValid = false;
+                }
+            });
+            
+            return isValid;
+        }
+
+        // Validate individual field
+        function validateField(fieldId) {
+            const field = document.getElementById(fieldId);
+            const value = field.value.trim();
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            let isValid = true;
+            let errorMessage = '';
+            
+            switch(fieldId) {
+                case 'firstName':
+                case 'lastName':
+                    if (!value) {
+                        errorMessage = 'This field is required';
+                        isValid = false;
+                    } else if (value.length < 2) {
+                        errorMessage = 'Must be at least 2 characters long';
+                        isValid = false;
+                    }
+                    break;
+                    
+                case 'email':
+                    if (!value) {
+                        errorMessage = 'Email is required';
+                        isValid = false;
+                    } else if (!isValidEmail(value)) {
+                        errorMessage = 'Please enter a valid email address';
+                        isValid = false;
+                    }
+                    break;
+                    
+                case 'phone':
+                    if (value && !isValidPhone(value)) {
+                        errorMessage = 'Please enter a valid phone number';
+                        isValid = false;
+                    }
+                    break;
+                    
+                case 'eventId':
+                    if (!value) {
+                        errorMessage = 'Please select an event';
+                        isValid = false;
+                    }
+                    break;
+                    
+                case 'ticketId':
+                    if (!value) {
+                        errorMessage = 'Please select a ticket type';
+                        isValid = false;
+                    }
+                    break;
+            }
+            
+            if (isValid) {
+                field.classList.remove('border-red-500');
+                field.classList.add('border-gray-300');
+                errorElement.textContent = '';
+                errorElement.classList.add('hidden');
+            } else {
+                field.classList.remove('border-gray-300');
+                field.classList.add('border-red-500');
+                errorElement.textContent = errorMessage;
+                errorElement.classList.remove('hidden');
+            }
+            
+            return isValid;
+        }
+
+        // Clear field error
+        function clearFieldError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            field.classList.remove('border-red-500');
+            field.classList.add('border-gray-300');
+            errorElement.classList.add('hidden');
+        }
+
+        // Display validation errors from server
+        function displayValidationErrors(errors) {
+            Object.keys(errors).forEach(fieldName => {
+                const fieldId = fieldName.replace('_', '');
+                const field = document.getElementById(fieldId);
+                const errorElement = document.getElementById(fieldId + 'Error');
+                
+                if (field && errorElement) {
+                    field.classList.add('border-red-500');
+                    errorElement.textContent = errors[fieldName][0];
+                    errorElement.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Validation helper functions
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function isValidPhone(phone) {
+            const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+            return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertText = document.getElementById('alertText');
+
+            // Set alert style based on type
+            alertMessage.className = 'px-4 py-3 rounded relative';
+            switch(type) {
+                case 'success':
+                    alertMessage.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+                    break;
+                case 'error':
+                    alertMessage.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+                    break;
+                case 'warning':
+                    alertMessage.classList.add('bg-yellow-100', 'border', 'border-yellow-400', 'text-yellow-700');
+                    break;
+                default:
+                    alertMessage.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+            }
+
+            alertText.textContent = message;
+            alertContainer.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertContainer.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+    
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation
+        initializeNavigation('attendees', '../');
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // Global variables
 let dashboardData = {};
-const API_BASE_URL = 'http://127.0.0.1:8000/api/SuperAdmin-dashboard';
+const API_BASE_URL = 'http://localhost:3001/super-admin/dashboard';
 
 // Simple test to verify axios is loaded
 console.log('Dashboard.js loaded, axios available:', typeof axios !== 'undefined');
@@ -18,11 +18,22 @@ async function loadDashboardData() {
         showLoading();
         console.log('Attempting to fetch data from:', API_BASE_URL);
         
+        // Get auth token from localStorage
+        const token = localStorage.getItem('auth_token');
+        console.log('Auth token found:', !!token);
+        
+        const headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        };
+        
+        // Add authorization header if token exists
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+        
         const response = await axios.get(API_BASE_URL, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
+            headers: headers,
             timeout: 10000 // 10 second timeout
         });
         
@@ -48,7 +59,13 @@ async function loadDashboardData() {
         
         let errorMessage = 'Failed to fetch dashboard data';
         
-        if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+        if (error.response?.status === 401) {
+            errorMessage = 'Authentication failed: Please login with super admin credentials to access this dashboard.';
+            // Remove invalid token and suggest redirect to login
+            localStorage.removeItem('auth_token');
+        } else if (error.response?.status === 403) {
+            errorMessage = 'Access denied: You do not have super admin privileges to access this dashboard.';
+        } else if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
             errorMessage = `Network Error: Cannot connect to API server at ${API_BASE_URL}. Please ensure the backend server is running.`;
         } else if (error.response) {
             errorMessage = `API Error (${error.response.status}): ${error.response.data?.message || error.response.statusText}`;

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Company - MFW Events</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Add New Company</h1>
+                    <p class="text-gray-600 mt-2">Create a new company to manage events and users</p>
+                </div>
+                <a href="index.html" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200 flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Companies
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Company Information</h2>
+                <p class="text-gray-600 mt-1">Please fill out all required fields to create the company</p>
+            </div>
+
+            <form id="company-form" class="p-6 space-y-6">
+                <!-- Company Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Company Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="name" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           required placeholder="Enter company name">
+                    <p id="name-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                </div>
+
+                <!-- Company Address -->
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                        Address
+                    </label>
+                    <textarea name="address" id="address" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter company address"></textarea>
+                    <p id="address-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address
+                        </label>
+                        <input type="email" name="email" id="email" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="company@example.com">
+                        <p id="email-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number
+                        </label>
+                        <input type="text" name="phone" id="phone" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="+1 (555) 123-4567">
+                        <p id="phone-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Password
+                        </label>
+                        <input type="password" name="password" id="password" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="Enter password">
+                        <p id="password-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="index.html" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200" id="submit-btn">
+                        <i class="fas fa-plus mr-2"></i>Create Company
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Box -->
+        <div class="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">What happens after creating a company?</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>You can assign users to this company</li>
+                            <li>Events can be created under this company</li>
+                            <li>Company-specific reporting will be available</li>
+                            <li>Access controls can be set per company</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <i class="fas fa-check text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-2">Company Created Successfully!</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        The company has been created and is ready to use.
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="go-to-companies" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-auto mr-2 hover:bg-blue-700">
+                        View Companies
+                    </button>
+                    <button id="create-another" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-auto hover:bg-gray-400">
+                        Create Another
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/axios.min.js"></script>
+    <script src="api.js"></script>
+    <script>
+        // Form validation
+        function validateForm() {
+            const form = document.getElementById('company-form');
+            const formData = new FormData(form);
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('border-red-300'));
+
+            // Validate required fields
+            if (!formData.get('name').trim()) {
+                showError('name', 'Company name is required');
+                isValid = false;
+            }
+
+            // Validate email format if provided
+            const email = formData.get('email').trim();
+            if (email && !isValidEmail(email)) {
+                showError('email', 'Please enter a valid email address');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorElement = document.getElementById(`${fieldName}-error`);
+            
+            field.classList.add('border-red-300');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        function isValidEmail(email) {
+            return Utils.isValidEmail(email);
+        }
+
+        function resetForm() {
+            document.getElementById('company-form').reset();
+            document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('border-red-300'));
+        }
+
+        function showSuccessModal() {
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function hideSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        // Form submission
+        document.getElementById('company-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            Utils.showLoading('submit-btn', 'Creating...');
+
+            try {
+                // Get form data
+                const formData = new FormData(this);
+                const companyData = {
+                    name: formData.get('name').trim(),
+                    address: formData.get('address').trim(),
+                    email: formData.get('email').trim(),
+                    phone: formData.get('phone').trim()
+                };
+
+                // Call API to create company
+                const newCompany = await companyAPI.create(companyData);
+                
+                // Show success modal
+                showSuccessModal();
+                
+            } catch (error) {
+                console.error('Error creating company:', error);
+                
+                // Handle validation errors from backend
+                if (error.response?.status === 400) {
+                    Utils.showError('Please check all required fields and try again.');
+                } else {
+                    Utils.showError('Failed to create company. Please try again.');
+                }
+            } finally {
+                // Reset button
+                Utils.hideLoading('submit-btn', originalText);
+            }
+        });
+
+        // Modal event listeners
+        document.getElementById('go-to-companies').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('create-another').addEventListener('click', function() {
+            hideSuccessModal();
+            resetForm();
+        });
+
+        // Real-time validation
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && !isValidEmail(email)) {
+                showError('email', 'Please enter a valid email address');
+            } else {
+                document.getElementById('email-error').classList.add('hidden');
+                this.classList.remove('border-red-300');
+            }
+        });
+
+        document.getElementById('name').addEventListener('input', function() {
+            if (this.value.trim()) {
+                document.getElementById('name-error').classList.add('hidden');
+                this.classList.remove('border-red-300');
+            }
+        });
+    </script>
+    
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation
+        initializeNavigation('companies', '../');
+    </script>
+</body>
+</html>

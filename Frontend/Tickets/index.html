@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets | Event Registration System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .loading-overlay { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(2px); 
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 loading-overlay items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading tickets...</p>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Tickets</h1>
+                    <p class="text-gray-600 mt-2">Manage ticket types, pricing, and availability for your events</p>
+                </div>
+                <a href="create.html" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200 flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Create New Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="max-w-6xl mx-auto px-4 py-4">
+        <div class="bg-white rounded-lg shadow-sm p-4 flex flex-wrap gap-4 items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-filter text-gray-500"></i>
+                <span class="text-sm font-medium text-gray-700">Filter by:</span>
+            </div>
+            <select id="eventFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                <option value="">All Events</option>
+            </select>
+            <select id="zoneFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                <option value="">All Zones</option>
+            </select>
+            <select id="statusFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="sold_out">Sold Out</option>
+            </select>
+            <button onclick="applyFilters()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm">
+                Apply Filters
+            </button>
+            <button onclick="clearFilters()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md text-sm">
+                Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alertContainer" class="max-w-6xl mx-auto px-4 pt-4 hidden">
+        <div id="alertMessage" class="px-4 py-3 rounded relative" role="alert">
+            <span id="alertText"></span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <!-- Tickets Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Dynamic content will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- No Data Message -->
+            <div id="noDataMessage" class="text-center py-8 hidden">
+                <i class="fas fa-ticket-alt text-gray-400 text-4xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Tickets Found</h3>
+                <p class="text-gray-600 mb-4">There are no tickets matching your filter criteria.</p>
+                <a href="create.html" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200">
+                    <i class="fas fa-plus mr-2"></i>Create First Ticket
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Details Modal -->
+    <div id="ticketModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Ticket Details</h3>
+                    <button onclick="closeTicketModal()" class="text-gray-400 hover:text-gray-600" title="Close">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div id="ticketDetails" class="space-y-4">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button onclick="closeTicketModal()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition duration-200">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include API Configuration -->
+    <script src="../assets/js/api.js"></script>
+    <script>
+        let tickets = [];
+        let events = [];
+        let eventZones = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTickets();
+            loadEvents();
+            loadEventZones();
+        });
+
+        // Load all tickets
+        async function loadTickets() {
+            try {
+                showLoading();
+                const response = await TicketAPI.getAll();
+                tickets = response.data;
+                renderTickets(tickets);
+            } catch (error) {
+                console.error('Error loading tickets:', error);
+                showAlert('Error loading tickets. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Load events for filter dropdown
+        async function loadEvents() {
+            try {
+                const response = await EventAPI.getAll();
+                events = response.data;
+                populateEventFilter();
+            } catch (error) {
+                console.error('Error loading events:', error);
+            }
+        }
+
+        // Load event zones for filter dropdown
+        async function loadEventZones() {
+            try {
+                const response = await EventZoneAPI.getAll();
+                eventZones = response.data;
+                populateZoneFilter();
+            } catch (error) {
+                console.error('Error loading event zones:', error);
+            }
+        }
+
+        // Populate event filter dropdown
+        function populateEventFilter() {
+            const eventSelect = document.getElementById('eventFilter');
+            eventSelect.innerHTML = '<option value="">All Events</option>';
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = event.name;
+                eventSelect.appendChild(option);
+            });
+        }
+
+        // Populate zone filter dropdown
+        function populateZoneFilter() {
+            const zoneSelect = document.getElementById('zoneFilter');
+            zoneSelect.innerHTML = '<option value="">All Zones</option>';
+            
+            eventZones.forEach(zone => {
+                const option = document.createElement('option');
+                option.value = zone.id;
+                option.textContent = zone.name;
+                zoneSelect.appendChild(option);
+            });
+        }
+
+        // Render tickets table
+        function renderTickets(ticketsData) {
+            const ticketsTableBody = document.getElementById('ticketsTableBody');
+            const noDataMessage = document.getElementById('noDataMessage');
+
+            if (ticketsData.length === 0) {
+                ticketsTableBody.innerHTML = '';
+                noDataMessage.classList.remove('hidden');
+                return;
+            }
+
+            noDataMessage.classList.add('hidden');
+            
+            ticketsTableBody.innerHTML = ticketsData.map(ticket => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${ticket.name || ticket.type || 'Ticket'}</div>
+                        <div class="text-xs text-gray-500">${ticket.description || 'No description'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${ticket.event?.name || ticket.eventZone?.event?.name || 'N/A'}</div>
+                        <div class="text-xs text-gray-500">${ticket.event?.date || ticket.eventZone?.event?.event_date ? new Date(ticket.event?.date || ticket.eventZone?.event?.event_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'No date'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${ticket.zone?.name || ticket.eventZone?.name || 'N/A'}</div>
+                        <div class="text-xs text-gray-500">${ticket.zone?.description || ticket.eventZone?.description || ''}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">
+                            $${ticket.price || '0.00'} ${ticket.currency?.code || 'USD'}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${ticket.available_quantity !== undefined ? ticket.available_quantity : (ticket.quantity || 'Unlimited')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${ticket.total_quantity !== undefined ? ticket.total_quantity : (ticket.quantity || 'Unlimited')}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${getStatusBadge(ticket)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex space-x-2">
+                            <button onclick="viewTicket(${ticket.id})" class="text-blue-600 hover:text-blue-900">
+                                <i class="fas fa-eye mr-1"></i>View
+                            </button>
+                            <a href="edit.html?id=${ticket.id}" class="text-yellow-600 hover:text-yellow-900">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </a>
+                            <button onclick="deleteTicket(${ticket.id})" class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Get status badge HTML
+        function getStatusBadge(ticket) {
+            const availableQty = ticket.available_quantity !== undefined ? ticket.available_quantity : ticket.quantity;
+            
+            if (availableQty > 0 || availableQty === null || availableQty === undefined) {
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check mr-1"></i>Available
+                </span>`;
+            } else {
+                return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    <i class="fas fa-times mr-1"></i>Sold Out
+                </span>`;
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const eventFilter = document.getElementById('eventFilter').value;
+            const zoneFilter = document.getElementById('zoneFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const filteredTickets = tickets.filter(ticket => {
+                const eventMatch = !eventFilter || ticket.event_id == eventFilter;
+                const zoneMatch = !zoneFilter || ticket.zone_id == zoneFilter;
+                const statusMatch = !statusFilter || ticket.status?.toLowerCase() === statusFilter;
+
+                return eventMatch && zoneMatch && statusMatch;
+            });
+
+            renderTickets(filteredTickets);
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('eventFilter').value = '';
+            document.getElementById('zoneFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            renderTickets(tickets);
+        }
+
+        // View ticket details
+        async function viewTicket(id) {
+            try {
+                showLoading();
+                const response = await TicketAPI.getById(id);
+                const ticket = response.data;
+                
+                document.getElementById('ticketDetails').innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ticket Type</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.type || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Price</label>
+                            <p class="mt-1 text-sm text-gray-900">$${ticket.price || '0.00'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Event</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.event?.name || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Zone</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.zone?.name || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Total Quantity</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.quantity || 0}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Sold Quantity</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.sold_quantity || 0}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Available</label>
+                            <p class="mt-1 text-sm text-gray-900">${(ticket.quantity || 0) - (ticket.sold_quantity || 0)}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <span class="mt-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTicketStatusColor(ticket.status)}">
+                                ${ticket.status || 'Active'}
+                            </span>
+                        </div>
+                        ${ticket.description ? `
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Description</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.description}</p>
+                        </div>
+                        ` : ''}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Created Date</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Last Updated</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.updated_at ? new Date(ticket.updated_at).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('ticketModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading ticket details:', error);
+                showAlert('Error loading ticket details. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Close ticket modal
+        function closeTicketModal() {
+            document.getElementById('ticketModal').classList.add('hidden');
+        }
+
+        // Delete ticket
+        async function deleteTicket(id) {
+            if (!confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                showLoading();
+                await TicketAPI.delete(id);
+                showAlert('Ticket deleted successfully!', 'success');
+                loadTickets(); // Reload the list
+            } catch (error) {
+                console.error('Error deleting ticket:', error);
+                showAlert('Error deleting ticket. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertText = document.getElementById('alertText');
+
+            // Set alert style based on type
+            alertMessage.className = 'px-4 py-3 rounded relative';
+            switch(type) {
+                case 'success':
+                    alertMessage.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+                    break;
+                case 'error':
+                    alertMessage.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+                    break;
+                case 'warning':
+                    alertMessage.classList.add('bg-yellow-100', 'border', 'border-yellow-400', 'text-yellow-700');
+                    break;
+                default:
+                    alertMessage.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+            }
+
+            alertText.textContent = message;
+            alertContainer.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertContainer.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+    
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation
+        initializeNavigation('tickets', '../');
+    </script>
+</body>
+</html>

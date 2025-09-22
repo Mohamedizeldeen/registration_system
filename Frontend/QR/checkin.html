@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Check-in - Registration System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav id="navigation"></nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+            <!-- Success/Info Message -->
+            <div class="text-center mb-6">
+                <div id="statusIcon" class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h1 id="statusTitle" class="text-2xl font-bold text-green-600 mb-2">Check-in Successful!</h1>
+                <p id="statusMessage" class="text-gray-600">Welcome! Your check-in has been recorded successfully.</p>
+            </div>
+
+            <!-- Attendee Information -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-3">Attendee Details</h2>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Name:</span>
+                        <span id="attendeeName" class="text-gray-900">John Doe</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Email:</span>
+                        <span id="attendeeEmail" class="text-gray-900">john.doe@example.com</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Event:</span>
+                        <span id="eventName" class="text-gray-900">Tech Conference 2025</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Ticket:</span>
+                        <span id="ticketName" class="text-gray-900">General Admission</span>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-600">Check-in Time:</span>
+                        <span id="checkinTime" class="text-gray-900">Sep 22, 2025 2:30 PM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="text-center">
+                <span id="statusBadge" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    <i class="fas fa-check mr-2"></i>
+                    Checked In
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation
+        initNavigation('qr-checkin');
+
+        // Simulate different check-in statuses
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status') || 'success';
+        const attendeeId = urlParams.get('attendee') || '1';
+
+        // Sample attendee data
+        const attendeeData = {
+            '1': {
+                full_name: 'John Doe',
+                email: 'john.doe@example.com',
+                event: { name: 'Tech Conference 2025' },
+                ticket: { name: 'General Admission' },
+                checked_in_at: new Date(),
+                status: 'success'
+            },
+            '2': {
+                full_name: 'Jane Smith',
+                email: 'jane.smith@example.com',
+                event: { name: 'Marketing Summit 2025' },
+                ticket: { name: 'VIP Pass' },
+                checked_in_at: new Date(Date.now() - 3600000), // 1 hour ago
+                status: 'already_checked_in'
+            }
+        };
+
+        // Display check-in result
+        function displayCheckinResult(status, attendee) {
+            const statusIcon = document.getElementById('statusIcon');
+            const statusTitle = document.getElementById('statusTitle');
+            const statusMessage = document.getElementById('statusMessage');
+            const statusBadge = document.getElementById('statusBadge');
+
+            if (status === 'success') {
+                statusIcon.className = 'w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4';
+                statusIcon.innerHTML = '<i class="fas fa-check text-green-600 text-2xl"></i>';
+                statusTitle.className = 'text-2xl font-bold text-green-600 mb-2';
+                statusTitle.textContent = 'Check-in Successful!';
+                statusMessage.textContent = 'Welcome! Your check-in has been recorded successfully.';
+                statusBadge.className = 'inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800';
+                statusBadge.innerHTML = '<i class="fas fa-check mr-2"></i>Checked In';
+            } else if (status === 'already_checked_in') {
+                statusIcon.className = 'w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4';
+                statusIcon.innerHTML = '<i class="fas fa-info-circle text-blue-600 text-2xl"></i>';
+                statusTitle.className = 'text-2xl font-bold text-blue-600 mb-2';
+                statusTitle.textContent = 'Already Checked In';
+                statusMessage.textContent = 'You have already been checked in for this event.';
+                statusBadge.className = 'inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
+                statusBadge.innerHTML = '<i class="fas fa-info-circle mr-2"></i>Already Checked In';
+            }
+
+            // Update attendee information
+            document.getElementById('attendeeName').textContent = attendee.full_name;
+            document.getElementById('attendeeEmail').textContent = attendee.email;
+            document.getElementById('eventName').textContent = attendee.event.name;
+            document.getElementById('ticketName').textContent = attendee.ticket.name;
+            document.getElementById('checkinTime').textContent = attendee.checked_in_at.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // Load attendee data and display result
+        const attendee = attendeeData[attendeeId] || attendeeData['1'];
+        const checkinStatus = status === 'already_checked_in' ? 'already_checked_in' : 'success';
+        displayCheckinResult(checkinStatus, attendee);
+
+        // Real API integration (commented out for demo)
+        /*
+        async function loadCheckinResult() {
+            try {
+                const response = await fetch(`/api/qr/checkin/${attendeeId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayCheckinResult(data.status, data.attendee);
+                } else {
+                    window.location.href = 'error.html?message=' + encodeURIComponent(data.message);
+                }
+            } catch (error) {
+                console.error('Error loading check-in result:', error);
+                window.location.href = 'error.html?message=' + encodeURIComponent('Failed to load check-in information');
+            }
+        }
+        */
+    </script>
+</body>
+</html>

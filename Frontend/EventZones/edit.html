@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event Zone | Event Registration System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .form-field-focus:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white bg-opacity-90 items-center justify-center z-50 hidden">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Loading zone details...</p>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-6">
+            <div class="flex items-center">
+                <a href="index.html" class="mr-4 text-gray-600 hover:text-gray-800" title="Back to zones">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Edit Event Zone</h1>
+                    <p class="text-gray-600 mt-2">Update the details for this event zone</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alertContainer" class="max-w-4xl mx-auto px-4 pt-4 hidden">
+        <div id="alertMessage" class="px-4 py-3 rounded relative" role="alert">
+            <span id="alertText"></span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Form Header -->
+            <div class="gradient-bg px-6 py-4">
+                <h2 class="text-xl font-bold text-white flex items-center">
+                    <i class="fas fa-edit mr-3"></i>
+                    Update Zone Information
+                </h2>
+                <p class="text-white text-opacity-90 mt-1">Modify the details for this event zone</p>
+            </div>
+
+            <!-- Form Content -->
+            <form id="editZoneForm" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Zone Name -->
+                    <div class="md:col-span-2">
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Zone Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200" 
+                            placeholder="Enter zone name (e.g., VIP Section, General Admission, Floor 1)"
+                            required
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Choose a descriptive name that identifies this zone clearly</p>
+                    </div>
+
+                    <!-- Event Selection -->
+                    <div class="md:col-span-2">
+                        <label for="event_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            Event <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="event_id" 
+                            name="event_id" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
+                            required
+                        >
+                            <option value="">Select an event...</option>
+                            <!-- Dynamic options will be loaded here -->
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Choose which event this zone belongs to</p>
+                    </div>
+
+                    <!-- Capacity -->
+                    <div>
+                        <label for="capacity" class="block text-sm font-medium text-gray-700 mb-2">
+                            Capacity <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="capacity" 
+                            name="capacity" 
+                            min="1"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200" 
+                            placeholder="Maximum attendees"
+                            required
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Maximum number of attendees for this zone</p>
+                    </div>
+
+                    <!-- Location -->
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
+                            Location
+                        </label>
+                        <input 
+                            type="text" 
+                            id="location" 
+                            name="location" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200" 
+                            placeholder="Physical location or area"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Specific location within the venue (optional)</p>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="md:col-span-2">
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                            Description
+                        </label>
+                        <textarea 
+                            id="description" 
+                            name="description" 
+                            rows="4"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200 resize-vertical" 
+                            placeholder="Describe the zone, amenities, view, accessibility features, etc."
+                        ></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Additional details about this zone (optional)</p>
+                    </div>
+
+
+                    <!-- Priority/Order -->
+                    <div>
+                        <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">
+                            Display Order
+                        </label>
+                        <input 
+                            type="number" 
+                            id="priority" 
+                            name="priority" 
+                            min="0"
+                            value="0"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200" 
+                            placeholder="0"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Order in which zones are displayed (0 = first)</p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="border-t pt-6">
+                    <div class="flex justify-between">
+                        <button 
+                            type="button"
+                            onclick="deleteZone()"
+                            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition duration-200 flex items-center"
+                            id="deleteButton"
+                        >
+                            <i class="fas fa-trash mr-2"></i>
+                            Delete Zone
+                        </button>
+                        
+                        <div class="flex space-x-3">
+                            <a href="index.html" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200">
+                                Cancel
+                            </a>
+                            <button 
+                                type="submit" 
+                                class="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition duration-200 flex items-center"
+                                id="submitButton"
+                            >
+                                <i class="fas fa-save mr-2"></i>
+                                <span id="submitText">Update Zone</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Include API Configuration -->
+    <script src="../assets/js/api.js"></script>
+    <script>
+        let events = [];
+        let zoneId = null;
+        let originalZone = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get zone ID from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            zoneId = urlParams.get('id');
+            
+            if (!zoneId) {
+                showAlert('Zone ID is required', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+                return;
+            }
+            
+            loadEvents();
+            loadZoneData();
+            setupFormSubmission();
+        });
+
+        // Load events for dropdown
+        async function loadEvents() {
+            try {
+                const response = await EventAPI.getAll();
+                events = response.data;
+                populateEventDropdown();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showAlert('Error loading events. Please refresh the page.', 'error');
+            }
+        }
+
+        // Load zone data for editing
+        async function loadZoneData() {
+            try {
+                showLoading();
+                const response = await EventZoneAPI.getById(zoneId);
+                originalZone = response.data;
+                populateForm(originalZone);
+            } catch (error) {
+                console.error('Error loading zone data:', error);
+                showAlert('Error loading zone data. Please try again.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Populate event dropdown
+        function populateEventDropdown() {
+            const eventSelect = document.getElementById('event_id');
+            const defaultOption = eventSelect.querySelector('option[value=""]');
+            
+            // Clear existing options except the first one
+            eventSelect.innerHTML = '';
+            eventSelect.appendChild(defaultOption);
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = `${event.name}${event.date ? ` - ${new Date(event.date).toLocaleDateString()}` : ''}`;
+                eventSelect.appendChild(option);
+            });
+        }
+
+        // Populate form with zone data
+        function populateForm(zone) {
+            document.getElementById('name').value = zone.name || '';
+            document.getElementById('event_id').value = zone.event_id || '';
+            document.getElementById('capacity').value = zone.capacity || '';
+            document.getElementById('location').value = zone.location || '';
+            document.getElementById('description').value = zone.description || '';
+            document.getElementById('zone_type').value = zone.zone_type || '';
+            document.getElementById('priority').value = zone.priority || 0;
+        }
+
+        // Setup form submission
+        function setupFormSubmission() {
+            const form = document.getElementById('editZoneForm');
+            form.addEventListener('submit', handleFormSubmit);
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('submitButton');
+            const submitText = document.getElementById('submitText');
+            
+            try {
+                // Disable submit button
+                submitButton.disabled = true;
+                submitText.textContent = 'Updating...';
+                
+                // Collect form data
+                const formData = new FormData(e.target);
+                const zoneData = {
+                    name: formData.get('name'),
+                    event_id: parseInt(formData.get('event_id')),
+                    capacity: parseInt(formData.get('capacity')),
+                    location: formData.get('location') || null,
+                    description: formData.get('description') || null,
+                    zone_type: formData.get('zone_type') || null,
+                    priority: parseInt(formData.get('priority')) || 0
+                };
+
+                // Validate required fields
+                if (!zoneData.name || !zoneData.event_id || !zoneData.capacity) {
+                    throw new Error('Please fill in all required fields');
+                }
+
+                // Submit to API
+                const response = await EventZoneAPI.update(zoneId, zoneData);
+                
+                showAlert('Event zone updated successfully!', 'success');
+                
+                // Redirect to index after a short delay
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error updating zone:', error);
+                let errorMessage = 'Error updating event zone. Please try again.';
+                
+                if (error.response?.data?.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                showAlert(errorMessage, 'error');
+                
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitText.textContent = 'Update Zone';
+            }
+        }
+
+        // Delete zone
+        async function deleteZone() {
+            if (!confirm('Are you sure you want to delete this event zone? This action cannot be undone and may affect related tickets and attendees.')) {
+                return;
+            }
+
+            const deleteButton = document.getElementById('deleteButton');
+            
+            try {
+                deleteButton.disabled = true;
+                deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
+                
+                await EventZoneAPI.delete(zoneId);
+                
+                showAlert('Event zone deleted successfully!', 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error deleting zone:', error);
+                showAlert('Error deleting event zone. Please try again.', 'error');
+                
+                deleteButton.disabled = false;
+                deleteButton.innerHTML = '<i class="fas fa-trash mr-2"></i>Delete Zone';
+            }
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertMessage = document.getElementById('alertMessage');
+            const alertText = document.getElementById('alertText');
+
+            // Set alert style based on type
+            alertMessage.className = 'px-4 py-3 rounded relative';
+            switch(type) {
+                case 'success':
+                    alertMessage.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-700');
+                    break;
+                case 'error':
+                    alertMessage.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700');
+                    break;
+                case 'warning':
+                    alertMessage.classList.add('bg-yellow-100', 'border', 'border-yellow-400', 'text-yellow-700');
+                    break;
+                default:
+                    alertMessage.classList.add('bg-blue-100', 'border', 'border-blue-400', 'text-blue-700');
+            }
+
+            alertText.textContent = message;
+            alertContainer.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                alertContainer.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+    
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation
+        initializeNavigation('zones', '../');
+    </script>
+</body>
+</html>

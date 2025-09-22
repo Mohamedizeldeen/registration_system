@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Company - MFW Events</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/output.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Edit Company</h1>
+                    <p class="text-gray-600 mt-2" id="company-subtitle">Update company information</p>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="#" id="view-details-btn" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200 flex items-center">
+                        <i class="fas fa-eye mr-2"></i>View Details
+                    </a>
+                    <a href="index.html" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Companies
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Update Company Information</h2>
+                <p class="text-gray-600 mt-1">Modify the company details below</p>
+            </div>
+
+            <form id="edit-company-form" class="p-6 space-y-6">
+                <!-- Company Name -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                        Company Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="name" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           required placeholder="Enter company name">
+                    <p id="name-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                </div>
+
+                <!-- Company Address -->
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                        Address
+                    </label>
+                    <textarea name="address" id="address" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter company address"></textarea>
+                    <p id="address-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address
+                        </label>
+                        <input type="email" name="email" id="email" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="company@example.com">
+                        <p id="email-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                    </div>
+
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Phone Number
+                        </label>
+                        <input type="text" name="phone" id="phone" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="+1 (555) 123-4567">
+                        <p id="phone-error" class="text-red-500 text-sm mt-1 hidden"></p>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="#" id="cancel-btn" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200" id="submit-btn">
+                        <i class="fas fa-save mr-2"></i>Update Company
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Box -->
+        <div class="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Important Information</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Changing company information will update all related records</li>
+                            <li>All associated events and users will reflect the new company name</li>
+                            <li>Email notifications will be sent to affected users about the changes</li>
+                            <li>Historical data and reports will maintain consistency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <i class="fas fa-check text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-2">Company Updated Successfully!</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        The company information has been updated successfully.
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="view-company" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-auto mr-2 hover:bg-blue-700">
+                        View Company
+                    </button>
+                    <button id="back-to-list" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-auto hover:bg-gray-400">
+                        Back to List
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+        <div class="flex items-center justify-center min-h-full">
+        <div class="flex items-center justify-center min-h-full">
+            <div class="bg-white rounded-lg p-6 shadow-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-spinner fa-spin text-blue-600 text-2xl mr-4"></i>
+                    <span class="text-gray-700">Loading company information...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/axios.min.js"></script>
+    <script src="api.js"></script>
+    <script>
+        // Get company ID from URL
+        const companyId = Utils.getUrlParameter('id') || 1;
+
+        // Load company data
+        async function loadCompanyData() {
+            showLoading();
+            
+            try {
+                const company = await companyAPI.getById(companyId);
+                
+                if (!company) {
+                    Utils.showError('Company not found');
+                    return;
+                }
+                
+                // Populate form fields
+                document.getElementById('name').value = company.name || '';
+                document.getElementById('email').value = company.email || '';
+                document.getElementById('phone').value = company.phone || '';
+                document.getElementById('address').value = company.address || '';
+
+                // Update page elements
+                document.getElementById('company-subtitle').textContent = `Update company information for ${company.name}`;
+                document.getElementById('view-details-btn').href = `show.html?id=${company.id}`;
+                document.getElementById('cancel-btn').href = `show.html?id=${company.id}`;
+
+            } catch (error) {
+                console.error('Error loading company:', error);
+                Utils.showError('Failed to load company information');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Form submission
+        document.getElementById('edit-company-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading state
+            Utils.showLoading('submit-btn', 'Updating...');
+
+            try {
+                // Get form data
+                const formData = new FormData(this);
+                const companyData = {
+                    name: formData.get('name').trim(),
+                    address: formData.get('address').trim(),
+                    email: formData.get('email').trim(),
+                    phone: formData.get('phone').trim()
+                };
+
+                // Call API to update company
+                const updatedCompany = await companyAPI.update(companyId, companyData);
+                
+                // Show success modal
+                showSuccessModal();
+                
+            } catch (error) {
+                console.error('Error updating company:', error);
+                
+                // Handle validation errors from backend
+                if (error.response?.status === 400) {
+                    Utils.showError('Please check all required fields and try again.');
+                } else {
+                    Utils.showError('Failed to update company. Please try again.');
+                }
+            } finally {
+                // Reset button
+                Utils.hideLoading('submit-btn', originalText);
+            }
+        });
+
+        // Modal event listeners
+        document.getElementById('view-company').addEventListener('click', function() {
+            window.location.href = `show.html?id=${companyId}&success=${encodeURIComponent('Company updated successfully!')}`;
+        });
+
+        document.getElementById('back-to-list').addEventListener('click', function() {
+            window.location.href = 'index.html';
+        });
+
+        // Real-time validation
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && !isValidEmail(email)) {
+                showError('email', 'Please enter a valid email address');
+            } else {
+                document.getElementById('email-error').classList.add('hidden');
+                this.classList.remove('border-red-300');
+            }
+        });
+
+        document.getElementById('name').addEventListener('input', function() {
+            if (this.value.trim()) {
+                document.getElementById('name-error').classList.add('hidden');
+                this.classList.remove('border-red-300');
+            }
+        });
+
+        // Add helper functions
+        function validateForm() {
+            const form = document.getElementById('edit-company-form');
+            const formData = new FormData(form);
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('input, textarea').forEach(el => el.classList.remove('border-red-300'));
+
+            // Validate required fields
+            if (!formData.get('name').trim()) {
+                showError('name', 'Company name is required');
+                isValid = false;
+            }
+
+            // Validate email format if provided
+            const email = formData.get('email').trim();
+            if (email && !isValidEmail(email)) {
+                showError('email', 'Please enter a valid email address');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function isValidEmail(email) {
+            return Utils.isValidEmail(email);
+        }
+
+        function showError(fieldName, message) {
+            const field = document.getElementById(fieldName);
+            const errorElement = document.getElementById(`${fieldName}-error`);
+            
+            field.classList.add('border-red-300');
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        function showSuccessModal() {
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function hideSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCompanyData();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Scanner - Registration System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav id="navigation"></nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-qrcode text-blue-600 text-2xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">QR Code Scanner</h1>
+                    <p class="text-gray-600">Scan attendee QR codes for event check-in</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- QR Scanner -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-camera mr-2 text-blue-600"></i>
+                        Camera Scanner
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <div id="qr-reader" class="w-full"></div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button id="start-scan" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg mr-2 transition duration-200">
+                            <i class="fas fa-play mr-2"></i>Start Scanner
+                        </button>
+                        <button id="stop-scan" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" style="display: none;">
+                            <i class="fas fa-stop mr-2"></i>Stop Scanner
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Input -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-keyboard mr-2 text-green-600"></i>
+                        Manual Input
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="manual-qr" class="block text-sm font-medium text-gray-700 mb-2">
+                                QR Code / Ticket ID
+                            </label>
+                            <input type="text" id="manual-qr" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Enter QR code or ticket ID">
+                        </div>
+                        
+                        <button id="manual-checkin" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                            <i class="fas fa-check mr-2"></i>Process Check-in
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Scans -->
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-history mr-2 text-purple-600"></i>
+                    Recent Check-ins
+                </h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendee</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-scans" class="bg-white divide-y divide-gray-200">
+                            <!-- Recent scans will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md mx-4">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Check-in Successful!</h3>
+                <p id="success-attendee" class="text-gray-600 mb-4"></p>
+                <button onclick="closeModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                    Continue Scanning
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/navigation.js"></script>
+    <script>
+        // Initialize navigation
+        initNavigation('qr-scanner');
+
+        let html5QrcodeScanner;
+        let recentScans = [];
+
+        // Sample data for demo
+        const attendeeDatabase = {
+            'ATT001': { id: 1, name: 'John Doe', email: 'john@example.com', event: 'Tech Conference 2025' },
+            'ATT002': { id: 2, name: 'Jane Smith', email: 'jane@example.com', event: 'Marketing Summit 2025' },
+            'ATT003': { id: 3, name: 'Bob Johnson', email: 'bob@example.com', event: 'Design Workshop 2025' }
+        };
+
+        // Initialize QR Scanner
+        function initQRScanner() {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        }
+
+        // Start scanning
+        function startScanning() {
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    const cameraId = devices[0].id;
+                    html5QrcodeScanner.start(
+                        cameraId,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 }
+                        },
+                        (decodedText, decodedResult) => {
+                            processQRCode(decodedText);
+                        },
+                        (errorMessage) => {
+                            // Ignore scanning errors
+                        }
+                    );
+                    
+                    document.getElementById('start-scan').style.display = 'none';
+                    document.getElementById('stop-scan').style.display = 'inline-block';
+                }
+            }).catch(err => {
+                console.error('Camera access denied:', err);
+                alert('Camera access is required for QR scanning. Please allow camera access and refresh the page.');
+            });
+        }
+
+        // Stop scanning
+        function stopScanning() {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('start-scan').style.display = 'inline-block';
+                document.getElementById('stop-scan').style.display = 'none';
+            });
+        }
+
+        // Process QR code
+        function processQRCode(qrCode) {
+            console.log('QR Code scanned:', qrCode);
+            
+            // Simulate API call
+            const attendee = attendeeDatabase[qrCode];
+            
+            if (attendee) {
+                // Successful check-in
+                addRecentScan(attendee, 'success');
+                showSuccessModal(attendee);
+                stopScanning();
+            } else {
+                // Invalid QR code
+                window.open(`error.html?code=attendee_not_found&message=${encodeURIComponent('No attendee found with this QR code.')}`, '_blank');
+            }
+        }
+
+        // Show success modal
+        function showSuccessModal(attendee) {
+            document.getElementById('success-attendee').textContent = `${attendee.name} has been checked in for ${attendee.event}`;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            startScanning();
+        }
+
+        // Add recent scan
+        function addRecentScan(attendee, status) {
+            const scan = {
+                time: new Date(),
+                attendee: attendee,
+                status: status
+            };
+            
+            recentScans.unshift(scan);
+            if (recentScans.length > 10) {
+                recentScans.pop();
+            }
+            
+            updateRecentScansTable();
+        }
+
+        // Update recent scans table
+        function updateRecentScansTable() {
+            const tbody = document.getElementById('recent-scans');
+            tbody.innerHTML = '';
+            
+            recentScans.forEach(scan => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${scan.time.toLocaleTimeString()}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${scan.attendee.name}</div>
+                        <div class="text-sm text-gray-500">${scan.attendee.email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${scan.attendee.event}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            scan.status === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }">
+                            <i class="fas ${scan.status === 'success' ? 'fa-check' : 'fa-times'} mr-1"></i>
+                            ${scan.status === 'success' ? 'Checked In' : 'Failed'}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Event listeners
+        document.getElementById('start-scan').addEventListener('click', startScanning);
+        document.getElementById('stop-scan').addEventListener('click', stopScanning);
+        
+        document.getElementById('manual-checkin').addEventListener('click', () => {
+            const qrCode = document.getElementById('manual-qr').value.trim();
+            if (qrCode) {
+                processQRCode(qrCode);
+                document.getElementById('manual-qr').value = '';
+            } else {
+                alert('Please enter a QR code or ticket ID');
+            }
+        });
+
+        // Enter key support for manual input
+        document.getElementById('manual-qr').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('manual-checkin').click();
+            }
+        });
+
+        // Initialize scanner on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initQRScanner();
+            
+            // Add some sample recent scans for demo
+            addRecentScan(attendeeDatabase['ATT001'], 'success');
+            addRecentScan(attendeeDatabase['ATT002'], 'success');
+        });
+
+        // Real API integration (commented out for demo)
+        /*
+        async function processQRCodeAPI(qrCode) {
+            try {
+                const response = await fetch('/api/qr/checkin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ qr_code: qrCode })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.status === 'success') {
+                        addRecentScan(data.attendee, 'success');
+                        showSuccessModal(data.attendee);
+                    } else {
+                        window.open(`checkin.html?status=${data.status}&attendee=${data.attendee.id}`, '_blank');
+                    }
+                } else {
+                    window.open(`error.html?message=${encodeURIComponent(data.message)}`, '_blank');
+                }
+            } catch (error) {
+                console.error('Check-in error:', error);
+                window.open(`error.html?code=network_error`, '_blank');
+            }
+        }
+        */
+    </script>
+</body>
+</html>

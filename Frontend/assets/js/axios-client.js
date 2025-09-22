@@ -6,7 +6,7 @@
 
 // Axios Configuration
 const axiosConfig = {
-    baseURL: 'http://localhost:8000/api',
+    baseURL: 'http://localhost:3001',
     timeout: 10000,
     headers: {
         'Accept': 'application/json',
