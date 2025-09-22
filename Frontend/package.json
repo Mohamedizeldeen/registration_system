@@ -9,7 +9,7 @@
     "build": "npm run build:css-prod && npm run copy:axios",
     "build:css": "npx tailwindcss -i ./assets/css/tailwind-input.css -o ./assets/css/output.css --watch",
     "build:css-prod": "npx tailwindcss -i ./assets/css/tailwind-input.css -o ./assets/css/output.css --minify",
-    "copy:axios": "copy \"node_modules\\axios\\dist\\axios.min.js\" \"assets\\js\\axios.min.js\"",
+    "copy:axios": "powershell -Command \"Copy-Item 'node_modules/axios/dist/axios.min.js' 'assets/js/axios.min.js' -Force\"",
     "preview": "live-server --port=3001 --host=localhost --entry-file=index.html",
     "optimize:css": "npm run build:css-prod",
     "optimize:js": "echo \"JS optimization - Future implementation\"",
