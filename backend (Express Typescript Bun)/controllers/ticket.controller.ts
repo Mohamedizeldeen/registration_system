@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getAllTickets,getTicketById, createTicket, deleteTicket,updateTicket } from "../services/ticket.service";
+import { getAllTickets,getTicketById, createTicket, deleteTicket,updateTicket, getTicketsByEventId } from "../services/ticket.service";
 
 export const getTickets = async (req: Request, res: Response) => {
     try {
@@ -45,5 +45,25 @@ export const modifyTicket = async (req: Request, res: Response) => {
         res.json(updatedTicket);
     } catch (error) {
         res.status(500).json({ error: "Failed to update ticket" });
+    }
+};
+
+// Get tickets by event ID (public endpoint for sharing)
+export const getEventTickets = async (req: Request, res: Response) => {
+    const { eventId } = req.params;
+    if (!eventId) {
+        return res.status(400).json({ error: "Event ID is required" });
+    }
+    
+    const numericEventId = Number(eventId);
+    if (isNaN(numericEventId)) {
+        return res.status(400).json({ error: "Event ID must be a valid number" });
+    }
+    
+    try {
+        const tickets = await getTicketsByEventId(numericEventId);
+        res.json(tickets);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch tickets" });
     }
 };

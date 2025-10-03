@@ -45,6 +45,8 @@ export const addAttendee = async (req: Request, res: Response) => {
   const {
     firstName,
     lastName,
+    eventId,
+    ticketId,
     email,
     phone,
     company,
@@ -53,9 +55,15 @@ export const addAttendee = async (req: Request, res: Response) => {
   } = req.body;
 
   try {
+    // Convert string IDs to integers or undefined
+    const parsedEventId = eventId ? parseInt(eventId, 10) : undefined;
+    const parsedTicketId = ticketId ? parseInt(ticketId, 10) : undefined;
+    
     const newAttendee = await createAttendee(
       firstName,
       lastName,
+      parsedEventId,
+      parsedTicketId,
       email,
       phone,
       company,
@@ -77,6 +85,8 @@ export const modifyAttendee = async (req: Request, res: Response) => {
   const {
     firstName,
     lastName,
+    eventId,
+    ticketId,
     email,
     phone,
     company,
@@ -85,10 +95,16 @@ export const modifyAttendee = async (req: Request, res: Response) => {
   } = req.body;
 
   try {
+    // Convert string IDs to integers or undefined
+    const parsedEventId = eventId ? parseInt(eventId, 10) : undefined;
+    const parsedTicketId = ticketId ? parseInt(ticketId, 10) : undefined;
+    
     const updatedAttendee = await updateAttendee(
       id,
       firstName,
       lastName,
+      parsedEventId,
+      parsedTicketId,
       email,
       phone,
       company,
@@ -99,5 +115,77 @@ export const modifyAttendee = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error modifying attendee:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Public registration endpoint (no authentication required)
+export const registerAttendee = async (req: Request, res: Response) => {
+  const {
+    firstName,
+    lastName,
+    eventId,
+    ticketId,
+    email,
+    phone,
+    company,
+    jobTitle,
+    country
+  } = req.body;
+
+  // Validate required fields
+  if (!firstName || !lastName) {
+    return res.status(400).json({ error: "First name and last name are required" });
+  }
+
+  try {
+    // Convert string IDs to integers
+    const parsedEventId = eventId ? parseInt(eventId, 10) : undefined;
+    const parsedTicketId = ticketId ? parseInt(ticketId, 10) : undefined;
+
+    // Generate unique QR code data
+    const timestamp = new Date().toISOString();
+    const uniqueId = `${parsedEventId}-${parsedTicketId}-${Date.now()}`;
+    const qrCodeData = JSON.stringify({
+      attendeeId: uniqueId,
+      eventId: parsedEventId,
+      ticketId: parsedTicketId,
+      name: `${firstName} ${lastName}`,
+      email: email,
+      company: company,
+      timestamp: timestamp
+    });
+
+    // Create attendee with QR code
+    const newAttendee = await createAttendee(
+      firstName,
+      lastName,
+      parsedEventId,
+      parsedTicketId,
+      email,
+      phone,
+      company,
+      jobTitle,
+      country,
+      uniqueId, // qrCode
+      qrCodeData // qrCodeData
+    );
+
+    res.status(201).json({ 
+      success: true,
+      message: "Registration successful",
+      attendee: {
+        id: newAttendee.id,
+        firstName: newAttendee.firstName,
+        lastName: newAttendee.lastName,
+        email: newAttendee.email,
+        company: newAttendee.company,
+        jobTitle: newAttendee.jobTitle,
+        qrCode: newAttendee.qrCode,
+        qrCodeData: newAttendee.qrCodeData
+      }
+    });
+  } catch (error) {
+    console.error("Error registering attendee:", error);
+    res.status(500).json({ error: "Registration failed. Please try again." });
   }
 };

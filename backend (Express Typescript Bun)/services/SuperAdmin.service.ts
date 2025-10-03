@@ -4,15 +4,16 @@ const prisma = new PrismaClient();
 
 export const fetchAllDataForDashboard = async () => {
     try {
-        const [companies, events, eventZones, tickets, users, payments] = await Promise.all([
+        const [companies, events, eventZones, tickets, users, payments, attendees] = await Promise.all([
             getAllCompanies(),
             getAllEvents(),
             getAllEventZones(),
             getAllTickets(),
             getAllUsers(),
             getAllPayments(),
+            getAllAttendees(),
         ]);
-        return { companies, events, eventZones, tickets, users, payments };
+        return { companies, events, eventZones, tickets, users, payments, attendees };
     } catch (error) {
         throw new Error("Error fetching all data");
     }
@@ -58,5 +59,12 @@ export const getAllPayments = async () => {
         throw new Error("Payment model is not available in Prisma Client");
     }
     return prisma.payment.findMany();
+};
+
+export const getAllAttendees = async () => {
+    if (!prisma.attendee) {
+        throw new Error("Attendee model is not available in Prisma Client");
+    }
+    return prisma.attendee.findMany();
 };
 

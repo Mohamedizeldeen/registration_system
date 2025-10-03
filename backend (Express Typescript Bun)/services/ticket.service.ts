@@ -6,7 +6,17 @@ export const getAllTickets = async () => {
     if (!prisma.ticket) {
         throw new Error("Ticket model is not available in Prisma Client");
     }
-    return await prisma.ticket.findMany();
+    return await prisma.ticket.findMany({
+        include: {
+            event: true,
+            eventZone: {
+                include: {
+                    event: true
+                }
+            },
+            coupon: true
+        }
+    });
 };
 
 export const createTicket = async (
@@ -40,7 +50,18 @@ export const getTicketById = async (id: number) => {
     if (!id) {
         throw new Error("Ticket ID is required");
     }
-    return await prisma.ticket.findUnique({ where: { id } });
+    return await prisma.ticket.findUnique({ 
+        where: { id },
+        include: {
+            event: true,
+            eventZone: {
+                include: {
+                    event: true
+                }
+            },
+            coupon: true
+        }
+    });
 };
 
 
@@ -77,6 +98,24 @@ export const updateTicket = async (
             info,
             price,
             quantity
+        }
+    });
+};
+
+export const getTicketsByEventId = async (eventId: number) => {
+    if (!eventId) {
+        throw new Error("Event ID is required");
+    }
+    return await prisma.ticket.findMany({
+        where: { eventId },
+        include: {
+            event: true,
+            eventZone: {
+                include: {
+                    event: true
+                }
+            },
+            coupon: true
         }
     });
 };

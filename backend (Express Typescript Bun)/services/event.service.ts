@@ -10,8 +10,8 @@ export const getAllEvents = async () => {
 };
 
 export const getEventById = async (id: number) => {
-  if (!id) {
-      throw new Error("Event ID is required");
+  if (!id || isNaN(id)) {
+      throw new Error("Event ID is required and must be a valid number");
   }
   return prisma.event.findUnique({ where: { id } });
 }

@@ -5,7 +5,11 @@ export const getAllEventZones = async () => {
     if (!prisma.eventZone) {
         throw new Error("EventZone model is not available in Prisma Client");
     }
-    return await prisma.eventZone.findMany();
+    return await prisma.eventZone.findMany({
+        include: {
+            event: true
+        }
+    });
 }
 export const deleteEventZone = async (id: number) => {
     if (!id) {
@@ -17,7 +21,12 @@ export const getEventZoneById = async (id: number) => {
     if (!id) {
         throw new Error("EventZone ID is required");
     }
-    return await prisma.eventZone.findUnique({ where: { id } });
+    return await prisma.eventZone.findUnique({ 
+        where: { id },
+        include: {
+            event: true
+        }
+    });
 }
 export const createEventZone = async (
     eventId: number,

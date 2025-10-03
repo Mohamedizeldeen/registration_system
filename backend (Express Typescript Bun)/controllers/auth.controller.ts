@@ -16,6 +16,8 @@ export async function signOutController(req: Request, res: Response) {
   if (!authHeader) return res.status(401).json({ message: "No token provided" });
 
   const token = authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "No token provided" });
+  
   const result = await signOut(token);
   res.json(result);
 }

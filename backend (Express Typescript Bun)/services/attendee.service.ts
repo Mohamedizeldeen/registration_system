@@ -6,14 +6,25 @@ export const getAllAttendees = async () => {
     if (!prisma.attendee) {
         throw new Error("Attendee model is not available in Prisma Client");
     }
-  return prisma.attendee.findMany();
+  return prisma.attendee.findMany({
+    include: {
+      event: true,
+      ticket: true
+    }
+  });
 };
 
 export const getAttendeeById = async (id: number) => {
     if (!id) {
         throw new Error("Attendee ID is required");
     }
-  return prisma.attendee.findUnique({ where: { id } });
+  return prisma.attendee.findUnique({ 
+    where: { id },
+    include: {
+      event: true,
+      ticket: true
+    }
+  });
 };
 
 export const deleteAttendee = async (id: number) => {

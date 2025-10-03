@@ -14,10 +14,13 @@ export const addCompany = async (req: Request, res: Response) => {
     const { name, address, phone, email } = req.body;
    
     try {
+        console.log("Creating company with data:", { name, address, phone, email });
         const newCompany = await createCompany(name, address, phone, email);
         res.status(201).json(newCompany);
     } catch (error) {
-        res.status(500).json({ error: "Failed to create company" });
+        console.error("Error creating company:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.status(500).json({ error: "Failed to create company", details: errorMessage });
     }
 };
 export const getCompany = async (req: Request, res: Response) => {

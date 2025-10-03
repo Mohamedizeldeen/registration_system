@@ -2,11 +2,12 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { PrismaClient } from "../generated/prisma";
 import { type User } from "../generated/prisma";
+import { isTokenBlacklisted } from "../services/auth.service";
 
 
 const prisma = new PrismaClient();
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET!;
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
 }
@@ -23,6 +24,7 @@ export async function authenticateJWT(req: Request, res: Response, next: NextFun
   if (!authHeader) return res.status(401).json({ message: "No token provided" });
 
   const token = authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "No token provided" });
 
   // تحقق من القائمة السوداء
   if (isTokenBlacklisted(token)) {

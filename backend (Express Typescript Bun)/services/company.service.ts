@@ -18,7 +18,8 @@ export const createCompany = async (name: string, address: string, phone: string
       name,
       address,
       phone,
-      email
+      email,
+      updatedAt: new Date()
     }
   });
 }
@@ -46,6 +47,12 @@ export const updateCompany = async (id: number, name: string, address: string, p
   }
   return prisma.company.update({
     where: { id },
-    data: { name, address, phone, email }
+    data: { 
+      name, 
+      address, 
+      phone, 
+      email,
+      updatedAt: new Date()
+    }
   });
 }

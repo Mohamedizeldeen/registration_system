@@ -1,0 +1,79 @@
+# Dependencies
+node_modules/
+*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vendor directories
+vendor/
+*/vendor/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+*.log
+logs/
+*/logs/
+*/storage/logs/
+
+# Cache and temporary files
+*/storage/framework/cache/
+*/storage/framework/sessions/
+*/storage/framework/views/
+*/bootstrap/cache/
+.cache/
+*.tmp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Lock files (keep package-lock.json but ignore others)
+yarn.lock
+bun.lockb
+.package-lock.json
+
+# Database
+*.sqlite
+*.db
+
+# Compiled files
+*.compiled.*
+
+# Storage directories (except public storage)
+storage/
+!storage/app/public/
+*/storage/
+!*/storage/app/public/
+
+# Public storage symlinks
+public/storage
+
+# Laravel specific
+bootstrap/compiled.php
+app/storage/
+
+# Composer
+composer.phar
+composer.lock
+
+# PHPUnit
+phpunit.xml
+.phpunit.result.cache
