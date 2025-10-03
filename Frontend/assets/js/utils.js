@@ -195,6 +195,53 @@ const Utils = {
     },
 
     /**
+     * Format event date for display
+     * @param {string} dateString - ISO date string
+     * @returns {string} Formatted event date
+     */
+    formatEventDate(dateString) {
+        if (!dateString) return 'N/A';
+        
+        try {
+            const date = new Date(dateString);
+            const options = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            
+            return new Intl.DateTimeFormat('en-US', options).format(date);
+        } catch (error) {
+            console.error('Event date formatting error:', error);
+            return dateString;
+        }
+    },
+
+    /**
+     * Format time for display
+     * @param {string} timeString - ISO time string
+     * @returns {string} Formatted time
+     */
+    formatTime(timeString) {
+        if (!timeString) return 'N/A';
+        
+        try {
+            const date = new Date(timeString);
+            const options = {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            };
+            
+            return new Intl.DateTimeFormat('en-US', options).format(date);
+        } catch (error) {
+            console.error('Time formatting error:', error);
+            return timeString;
+        }
+    },
+
+    /**
      * Debounce function calls
      * @param {Function} func - Function to debounce
      * @param {number} wait - Wait time in milliseconds
@@ -259,6 +306,114 @@ const Utils = {
         } catch (error) {
             return defaultValue;
         }
+    },
+
+    /**
+     * Get URL parameter value
+     * @param {string} name - Parameter name
+     * @returns {string|null} Parameter value or null if not found
+     */
+    getUrlParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    },
+
+    /**
+     * Get initials from a name
+     * @param {string} name - Full name
+     * @returns {string} Initials (max 2 characters)
+     */
+    getInitials(name) {
+        if (!name) return '??';
+        
+        const words = name.trim().split(/\s+/);
+        if (words.length === 1) {
+            return words[0].charAt(0).toUpperCase();
+        }
+        
+        return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+    },
+
+    /**
+     * Truncate text to specified length
+     * @param {string} text - Text to truncate
+     * @param {number} length - Maximum length
+     * @param {string} suffix - Suffix to add when truncated
+     * @returns {string} Truncated text
+     */
+    truncate(text, length = 50, suffix = '...') {
+        if (!text) return '';
+        if (text.length <= length) return text;
+        return text.substring(0, length).trim() + suffix;
+    },
+
+    /**
+     * Show loading state on an element
+     * @param {string} elementId - Element ID to show loading on
+     * @param {string} message - Loading message
+     */
+    showLoading(elementId, message = 'Loading...') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        // Store original content
+        if (!element.hasAttribute('data-original-content')) {
+            element.setAttribute('data-original-content', element.innerHTML);
+        }
+
+        // Show loading
+        element.innerHTML = `
+            <div class="flex items-center justify-center">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                ${message}
+            </div>
+        `;
+        element.disabled = true;
+    },
+
+    /**
+     * Hide loading state and restore original content
+     * @param {string} elementId - Element ID to hide loading on
+     * @param {string} fallbackText - Fallback text if no original content
+     */
+    hideLoading(elementId, fallbackText = 'Submit') {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const originalContent = element.getAttribute('data-original-content');
+        if (originalContent) {
+            element.innerHTML = originalContent;
+            element.removeAttribute('data-original-content');
+        } else {
+            element.innerHTML = fallbackText;
+        }
+        element.disabled = false;
+    },
+
+    /**
+     * Show success/info message
+     * @param {string} message - Message to show
+     * @param {string} type - Message type (success, info, warning, error)
+     */
+    showMessage(message, type = 'info') {
+        // Use the Notifications system
+        if (typeof Notifications !== 'undefined') {
+            Notifications[type] ? Notifications[type](message) : Notifications.info(message);
+        } else {
+            // Fallback to alert
+            alert(message);
+        }
+    },
+
+    /**
+     * Show error message
+     * @param {string} message - Error message to show
+     */
+    showError(message) {
+        this.showMessage(message, 'error');
     }
 };
 

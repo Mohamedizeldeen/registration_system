@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket Print Management | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -1022,9 +1022,10 @@
                     if (response.ok) {
                         const result = await response.json();
                         console.log('API response:', result);
-                        // Based on your event controller, it returns events array directly
-                        if (Array.isArray(result) && result.length > 0) {
-                            events = result;
+                        // API returns events in allEvents property
+                        const eventsArray = result.allEvents || result;
+                        if (Array.isArray(eventsArray) && eventsArray.length > 0) {
+                            events = eventsArray;
                             console.log('Loaded events from API:', events);
                             showAlert('Successfully connected to backend API!', 'success');
                         } else {
@@ -1512,11 +1513,11 @@
                 email: formData.get('email'),
                 phone: formData.get('phone') || '',
                 company: formData.get('company') || '',
-                event_id: parseInt(formData.get('eventId'))
+                eventId: parseInt(formData.get('eventId'))
             };
             
             // Validate required fields
-            if (!attendeeData.firstName || !attendeeData.lastName || !attendeeData.email || !attendeeData.event_id) {
+            if (!attendeeData.firstName || !attendeeData.lastName || !attendeeData.email || !attendeeData.eventId) {
                 showAlert('Please fill in all required fields.', 'error');
                 return;
             }
@@ -1556,27 +1557,27 @@
                 const result = await response.json();
                 console.log('Attendee submission result:', result);
                 
-                // Assuming your backend returns the created attendee
-                if (result && (result.id || result.data)) {
-                    const attendeeResult = result.data || result;
+                // Backend returns the created attendee in createdAttendee property
+                if (result && (result.createdAttendee || result.id || result.data)) {
+                    const attendeeResult = result.createdAttendee || result.data || result;
                     // Create attendee object for local update
                     const newAttendee = {
                         id: attendeeResult.id,
-                        full_name: `${attendeeData.firstName} ${attendeeData.lastName}`,
-                        email: attendeeData.email,
-                        phone: attendeeData.phone,
-                        company: attendeeData.company,
-                        event_id: attendeeData.event_id,
-                        event: events.find(e => e.id == attendeeData.event_id),
+                        full_name: `${attendeeResult.firstName} ${attendeeResult.lastName}`,
+                        email: attendeeResult.email,
+                        phone: attendeeResult.phone || '',
+                        company: attendeeResult.company || '',
+                        event_id: attendeeResult.eventId || attendeeData.eventId,
+                        event: events.find(e => e.id == (attendeeResult.eventId || attendeeData.eventId)),
                         ticket: { name: 'General Admission', price: 99.99 },
-                        checked_in_at: null
+                        checked_in_at: attendeeResult.checkedInAt
                     };
                     
                     console.log('Created new attendee object:', newAttendee);
                     
                     // Add to attendees array if current event matches
                     const currentEventId = document.getElementById('eventFilter').value;
-                    if (currentEventId == attendeeData.event_id) {
+                    if (currentEventId == attendeeData.eventId) {
                         allAttendees.push(newAttendee);
                         filteredAttendees = [...allAttendees];
                         displaySearchResults();
@@ -1934,51 +1935,7 @@
             }, 5000);
         }
 
-        // Setup event listeners
-        function setupEventListeners() {
-            document.getElementById('eventFilter').addEventListener('change', onEventChange);
-            document.getElementById('attendeeFilter').addEventListener('change', onAttendeeChange);
-        }
 
-        // Handle event selection change
-        async function onEventChange() {
-            const eventId = document.getElementById('eventFilter').value;
-            const attendeeSelect = document.getElementById('attendeeFilter');
-            
-            if (!eventId) {
-                attendeeSelect.innerHTML = '<option value="">First select an event</option>';
-                attendeeSelect.disabled = true;
-                document.getElementById('printButton').disabled = true;
-                document.getElementById('pdfButton').disabled = true;
-                return;
-            }
-
-            try {
-                showLoading();
-                
-                // Try to use real API first, fallback to sample data
-                try {
-                    const response = await AttendeeAPI.getAll();
-                    allAttendees = response.data.filter(attendee => 
-                        attendee.event_id == eventId || attendee.event?.id == eventId
-                    );
-                    console.log('Loaded attendees from API:', allAttendees);
-                } catch (apiError) {
-                    console.log('Attendee API failed, using sample data:', apiError);
-                    // Generate sample attendees for the selected event
-                    const selectedEvent = events.find(e => e.id == eventId);
-                    allAttendees = generateSampleAttendees(selectedEvent);
-                }
-                
-                populateAttendeeDropdown();
-                attendeeSelect.disabled = false;
-            } catch (error) {
-                console.error('Error loading attendees:', error);
-                showAlert('Error loading attendees for this event.', 'error');
-            } finally {
-                hideLoading();
-            }
-        }
 
         // Populate attendee dropdown
         function populateAttendeeDropdown() {
@@ -2002,19 +1959,13 @@
             console.log('Attendee dropdown populated, options count:', attendeeSelect.options.length);
         }
 
-        // Handle attendee selection change
-        function onAttendeeChange() {
-            const attendeeValue = document.getElementById('attendeeFilter').value;
-            document.getElementById('printButton').disabled = !attendeeValue;
-        }
-
         // Load and display tickets
         async function loadTickets() {
             const eventId = document.getElementById('eventFilter').value;
-            const attendeeValue = document.getElementById('attendeeFilter').value;
+            const attendeeSearch = document.getElementById('attendeeSearch').value;
             
-            if (!eventId || !attendeeValue) {
-                showAlert('Please select both an event and attendees.', 'warning');
+            if (!eventId) {
+                showAlert('Please select an event first.', 'warning');
                 return;
             }
 

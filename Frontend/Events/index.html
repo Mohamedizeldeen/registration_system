@@ -100,11 +100,89 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toast-message">Link copied to clipboard!</span>
+        </div>
+    </div>
+
     <script src="../assets/js/axios.min.js"></script>
     <script src="../assets/js/api.js"></script>
     <script>
         // Events data (will be loaded from API)
         let events = [];
+
+        // Share event function
+        function shareEvent(eventId) {
+            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
+            const shareUrl = `${baseUrl}share.html?id=${eventId}`;
+            
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showToast('Event link copied to clipboard!', 'success');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    // Fallback for older browsers
+                    fallbackCopyTextToClipboard(shareUrl);
+                });
+            } else {
+                // Fallback for browsers that don't support navigator.clipboard
+                fallbackCopyTextToClipboard(shareUrl);
+            }
+        }
+
+        // Fallback copy function for older browsers
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            
+            // Avoid scrolling to bottom
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Event link copied to clipboard!', 'success');
+                } else {
+                    showToast('Failed to copy link', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                showToast('Failed to copy link', 'error');
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            
+            // Set toast color based on type
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`;
+            
+            // Show toast
+            toast.style.transform = 'translateX(0)';
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+            }, 3000);
+        }
 
         // Render events grid
         function renderEvents(eventsData) {
@@ -120,25 +198,39 @@
             document.getElementById('empty-state').classList.add('hidden');
 
             grid.innerHTML = eventsData.map(event => `
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition duration-200">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition duration-200 overflow-hidden">
+                    ${event.bannerUrl ? `
+                    <div class="h-32 bg-gray-200">
+                        <img src="${event.bannerUrl}" alt="Event Banner" 
+                             class="w-full h-32 object-cover"
+                             onerror="this.parentNode.style.display='none'">
+                    </div>
+                    ` : ''}
                     <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-2">${event.title || event.name || 'Untitled Event'}</h3>
+                        <div class="flex items-center mb-3">
+                            ${event.logo ? `
+                            <img src="${event.logo}" alt="Event Logo" 
+                                 class="w-16 h-16 object-contain rounded-lg mr-4 flex-shrink-0 bg-gray-50 p-1"
+                                 onerror="this.style.display='none'">
+                            ` : ''}
+                            <h3 class="text-xl font-semibold text-gray-900">${event.name || 'Untitled Event'}</h3>
+                        </div>
                         
                         <div class="space-y-2 text-sm text-gray-600 mb-4">
-                            ${event.event_date ? `
+                            ${event.eventDate ? `
                             <div class="flex items-center">
                                 <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                ${Utils.formatEventDate(event.event_date)}
+                                ${Utils.formatEventDate(event.eventDate)}
                             </div>
                             ` : ''}
-                            ${event.time ? `
+                            ${event.startTime ? `
                             <div class="flex items-center">
                                 <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                ${Utils.formatTime(event.time)}
+                                ${Utils.formatTime(event.startTime)}
                             </div>
                             ` : ''}
                             ${event.location ? `
@@ -157,10 +249,10 @@
                         ` : ''}
 
                         <div class="flex justify-end space-x-2">
-                            <a href="show.html?id=${event.id}" class="px-3 py-1 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                View Details
-                            </a>
-                            <a href="edit.html?id=${event.id}" class="px-3 py-1 text-gray-600 hover:text-gray-800 text-sm font-medium">
+                            <button onclick="shareEvent(${event.id})" class="px-3 py-1 text-green-600 hover:text-green-800 text-sm font-medium flex items-center">
+                                <i class="fas fa-share mr-1"></i> Share
+                            </button>
+                            <a href="edit.html?id=${event.id}" class="px-3 py-1 text-blue-600 hover:text-blue-800 text-sm font-medium">
                                 Edit
                             </a>
                             <button onclick="showDeleteModal(${event.id})" class="px-3 py-1 text-red-600 hover:text-red-800 text-sm font-medium">
@@ -238,8 +330,23 @@
             Utils.showMessage(decodeURIComponent(successParam), 'success');
         }
 
+        // Wait for APIs to be ready
+        function waitForAPIs() {
+            return new Promise((resolve) => {
+                const checkAPIs = () => {
+                    if (typeof eventAPI !== 'undefined' && typeof axios !== 'undefined') {
+                        resolve();
+                    } else {
+                        setTimeout(checkAPIs, 100);
+                    }
+                };
+                checkAPIs();
+            });
+        }
+
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            await waitForAPIs();
             loadEvents();
         });
     </script>

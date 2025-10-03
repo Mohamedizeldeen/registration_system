@@ -94,8 +94,8 @@
                     <a href="#" id="cancel-btn" class="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200">
                         Cancel
                     </a>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200" id="submit-btn">
-                        <i class="fas fa-save mr-2"></i>Update Company
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200" id="submitButton">
+                        <i class="fas fa-save mr-2"></i><span id="submitText">Update Company</span>
                     </button>
                 </div>
             </form>
@@ -161,7 +161,7 @@
     </div>
 
     <script src="../assets/js/axios.min.js"></script>
-    <script src="api.js"></script>
+    <script src="../assets/js/utils.js"></script>
     <script>
         // Get company ID from URL
         const companyId = Utils.getUrlParameter('id') || 1;
@@ -171,7 +171,8 @@
             showLoading();
             
             try {
-                const company = await companyAPI.getById(companyId);
+                const response = await axios.get(`http://localhost:3001/companies/${companyId}`);
+                const company = response.data.company || response.data;
                 
                 if (!company) {
                     Utils.showError('Company not found');
@@ -197,19 +198,23 @@
             }
         }
 
-        // Form submission
-        document.getElementById('edit-company-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                return;
-            }
+        // Form submission with API availability check
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('edit-company-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Direct axios usage - no need to wait for API wrapper
+                
+                if (!validateForm()) {
+                    return;
+                }
 
-            const submitBtn = document.getElementById('submit-btn');
-            const originalText = submitBtn.innerHTML;
+            const submitBtn = document.getElementById('submitButton');
+            const submitText = document.getElementById('submitText');
+            const originalText = submitText.textContent;
             
             // Show loading state
-            Utils.showLoading('submit-btn', 'Updating...');
+            Utils.showLoading('submitButton', 'Updating...');
 
             try {
                 // Get form data
@@ -222,7 +227,8 @@
                 };
 
                 // Call API to update company
-                const updatedCompany = await companyAPI.update(companyId, companyData);
+                const response = await axios.put(`http://localhost:3001/companies/${companyId}`, companyData);
+                const updatedCompany = response.data;
                 
                 // Show success modal
                 showSuccessModal();
@@ -238,9 +244,10 @@
                 }
             } finally {
                 // Reset button
-                Utils.hideLoading('submit-btn', originalText);
+                Utils.hideLoading('submitButton', originalText);
             }
         });
+        }); // End of DOMContentLoaded event listener
 
         // Modal event listeners
         document.getElementById('view-company').addEventListener('click', function() {

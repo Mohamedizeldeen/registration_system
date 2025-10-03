@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Coupon | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .form-field-focus:focus {
@@ -65,25 +65,14 @@
                         <p class="text-xs text-gray-500 mt-1">Discount percentage (1-100%)</p>
                     </div>
 
-                    <!-- Ticket -->
-                    <div>
-                        <label for="ticket_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-ticket-alt mr-2"></i>Applicable Ticket <span class="text-red-500">*</span>
-                        </label>
-                        <select id="ticket_id" name="ticket_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200">
-                            <option value="">Select a ticket</option>
-                            <!-- Dynamic options will be loaded here -->
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1">Choose which ticket this coupon applies to</p>
-                    </div>
+                    <!-- Usage Count will be auto-calculated from attendee tickets -->
 
                     <!-- Expiry Date -->
                     <div>
                         <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-calendar mr-2"></i>Expiry Date <span class="text-red-500">*</span>
                         </label>
-                        <input type="date" id="expiry_date" name="expiry_date" required
+                        <input type="date" id="expiryDate" name="expiry_date" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200">
                         <p class="text-xs text-gray-500 mt-1">When this coupon expires</p>
                     </div>
@@ -93,22 +82,13 @@
                         <label for="max_usage" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-users mr-2"></i>Maximum Usage <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" id="max_usage" name="max_usage" required min="1"
+                        <input type="number" id="maxUsage" name="max_usage" required min="1"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
                             placeholder="e.g., 100" value="1">
                         <p class="text-xs text-gray-500 mt-1">Maximum number of times this coupon can be used</p>
                     </div>
 
-                    <!-- Description (Optional) -->
-                    <div class="md:col-span-2">
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-info-circle mr-2"></i>Description
-                        </label>
-                        <textarea id="description" name="description" rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200 resize-vertical"
-                            placeholder="Optional description of the coupon offer"></textarea>
-                        <p class="text-xs text-gray-500 mt-1">Additional details about this coupon (optional)</p>
-                    </div>
+
                 </div>
 
                 <!-- Submit Buttons -->
@@ -140,10 +120,7 @@
                         </div>
                         
                         <div class="space-y-2 mb-4">
-                            <div class="flex items-center text-gray-600">
-                                <i class="fas fa-ticket-alt mr-2 text-blue-500"></i>
-                                <span id="preview-ticket">Select a ticket</span>
-                            </div>
+
                             <div class="flex items-center text-gray-600">
                                 <i class="fas fa-calendar mr-2 text-red-500"></i>
                                 <span>Expires: <span id="preview-expiry">Select date</span></span>
@@ -165,54 +142,48 @@
         </div>
     </div>
 
-    <!-- Include API Configuration -->
-    <script src="../assets/js/api.js"></script>
     <script>
         let tickets = [];
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTickets();
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Always ensure CouponAPI is available
+            await ensureCouponAPI();
+            
             setupFormSubmission();
             setupPreview();
             setMinDate();
         });
 
+        // Ensure CouponAPI is available
+        async function ensureCouponAPI() {
+            console.log('🔧 Ensuring CouponAPI is available...');
+            
+            // Wait for axios
+            let attempts = 0;
+            while (typeof axios === 'undefined' && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            // Create CouponAPI
+            window.CouponAPI = {
+                async create(couponData) {
+                    console.log('📞 CouponAPI.create() called with:', couponData);
+                    const response = await axios.post('http://localhost:3001/coupons', couponData);
+                    return response.data;
+                }
+            };
+            console.log('✅ CouponAPI setup complete');
+        }
+
         // Set minimum date to today
         function setMinDate() {
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('expiry_date').min = today;
+            document.getElementById('expiryDate').min = today;
         }
 
-        // Load tickets for dropdown
-        async function loadTickets() {
-            try {
-                const response = await TicketAPI.getAll();
-                tickets = response.data;
-                populateTicketDropdown();
-            } catch (error) {
-                console.error('Error loading tickets:', error);
-                showAlert('Error loading tickets. Please refresh the page.', 'error');
-            }
-        }
 
-        // Populate ticket dropdown
-        function populateTicketDropdown() {
-            const ticketSelect = document.getElementById('ticket_id');
-            const defaultOption = ticketSelect.querySelector('option[value=""]');
-            
-            // Clear existing options except the first one
-            ticketSelect.innerHTML = '';
-            ticketSelect.appendChild(defaultOption);
-            
-            tickets.forEach(ticket => {
-                const option = document.createElement('option');
-                option.value = ticket.id;
-                option.textContent = `${ticket.name} - $${ticket.price}`;
-                option.dataset.ticketName = ticket.name;
-                ticketSelect.appendChild(option);
-            });
-        }
 
         // Setup form submission
         function setupFormSubmission() {
@@ -224,23 +195,19 @@
         function setupPreview() {
             document.getElementById('code').addEventListener('input', updatePreview);
             document.getElementById('discount').addEventListener('input', updatePreview);
-            document.getElementById('ticket_id').addEventListener('change', updatePreview);
-            document.getElementById('expiry_date').addEventListener('change', updatePreview);
-            document.getElementById('max_usage').addEventListener('input', updatePreview);
+            document.getElementById('expiryDate').addEventListener('change', updatePreview);
+            document.getElementById('maxUsage').addEventListener('input', updatePreview);
         }
 
         // Update preview card
         function updatePreview() {
             const code = document.getElementById('code').value || 'COUPON';
             const discount = document.getElementById('discount').value || '0';
-            const ticketSelect = document.getElementById('ticket_id');
-            const ticketName = ticketSelect.selectedOptions[0]?.dataset.ticketName || 'Select a ticket';
-            const expiryDate = document.getElementById('expiry_date').value;
-            const maxUsage = document.getElementById('max_usage').value || '1';
+            const expiryDate = document.getElementById('expiryDate').value;
+            const maxUsage = document.getElementById('maxUsage').value || '1';
 
             document.getElementById('preview-code').textContent = code.toUpperCase();
             document.getElementById('preview-discount').textContent = discount;
-            document.getElementById('preview-ticket').textContent = ticketName;
             document.getElementById('preview-expiry').textContent = expiryDate ? new Date(expiryDate).toLocaleDateString() : 'Select date';
             document.getElementById('preview-usage').textContent = maxUsage;
         }
@@ -261,20 +228,17 @@
                 const formData = new FormData(e.target);
                 const couponData = {
                     code: formData.get('code').toUpperCase(),
-                    discount: parseInt(formData.get('discount')),
-                    ticket_id: parseInt(formData.get('ticket_id')),
-                    expiry_date: formData.get('expiry_date'),
-                    max_usage: parseInt(formData.get('max_usage')),
-                    usage_count: 0,
-                    description: formData.get('description') || null
+                    discount: parseFloat(formData.get('discount')),
+                    expiryDate: formData.get('expiry_date') ? new Date(formData.get('expiry_date')).toISOString() : null,
+                    maxUsage: parseInt(formData.get('max_usage'))
                 };
 
                 // Validate required fields
-                if (!couponData.code || !couponData.discount || !couponData.ticket_id || !couponData.expiry_date || !couponData.max_usage) {
+                if (!couponData.code || !couponData.discount || !couponData.expiryDate || !couponData.maxUsage) {
                     throw new Error('Please fill in all required fields');
                 }
 
-                // Submit to API
+                // Submit to API using CouponAPI
                 const response = await CouponAPI.create(couponData);
                 
                 showAlert('Coupon created successfully!', 'success');

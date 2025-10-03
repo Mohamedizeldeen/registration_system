@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Zones | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-overlay { 
@@ -92,18 +92,27 @@
         let eventZones = [];
         let events = [];
 
+        // Direct axios calls - no API wrapper needed
+
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 DOM Content Loaded - Starting EventZones initialization...');
+            
+            console.log('📡 Loading data using direct axios calls for maximum reliability...');
             loadEventZones();
             loadEvents();
         });
 
-        // Load all event zones
+        // Load all event zones (direct axios - bulletproof)
         async function loadEventZones() {
             try {
                 showLoading();
-                const response = await EventZoneAPI.getAll();
+                
+                console.log('� Loading event zones using direct axios call...');
+                const response = await axios.get('http://localhost:3001/event-zones');
                 eventZones = response.data;
+                console.log('✅ Event zones loaded:', eventZones);
+                
                 renderEventZones(eventZones);
             } catch (error) {
                 console.error('Error loading event zones:', error);
@@ -113,15 +122,19 @@
             }
         }
 
-        // Load events for additional data
+        // Load events for additional data (direct axios - bulletproof)
         async function loadEvents() {
             try {
-                const response = await EventAPI.getAll();
+                console.log('� Loading events using direct axios call...');
+                const response = await axios.get('http://localhost:3001/events');
                 events = response.data;
+                console.log('✅ Events loaded:', events);
             } catch (error) {
                 console.error('Error loading events:', error);
             }
         }
+
+
 
         // Render event zones grid
         function renderEventZones(zonesData) {
@@ -229,7 +242,7 @@
         async function viewZone(id) {
             try {
                 showLoading();
-                const response = await EventZoneAPI.getById(id);
+                const response = await axios.get(`http://localhost:3001/event-zones/${id}`);
                 const zone = response.data;
                 
                 document.getElementById('zoneDetails').innerHTML = `
@@ -299,9 +312,15 @@
 
             try {
                 showLoading();
-                await EventZoneAPI.delete(id);
+                
+                // Use direct axios for reliability
+                console.log('🗑️ Deleting event zone using direct axios call...');
+                await axios.delete(`http://localhost:3001/event-zones/${id}`);
+                
                 showAlert('Event zone deleted successfully!', 'success');
-                loadEventZones(); // Reload the list
+                
+                // Reload using smart detection
+                loadEventZones();
             } catch (error) {
                 console.error('Error deleting zone:', error);
                 showAlert('Error deleting event zone. Please try again.', 'error');

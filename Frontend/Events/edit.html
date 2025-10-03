@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Event - MFW Events</title>
+    <title>Edit Event - MFW Events</title>
     <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -21,8 +21,8 @@
         <div class="max-w-4xl mx-auto px-4 py-6">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Create New Event</h1>
-                    <p class="text-gray-600 mt-2">Fill in the details below to create your event</p>
+                    <h1 class="text-3xl font-bold text-gray-900">Edit Event</h1>
+                    <p class="text-gray-600 mt-2">Update the event details below</p>
                 </div>
                 <a href="index.html" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition duration-200 flex items-center">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Events
@@ -33,30 +33,14 @@
 
     <!-- Main Content -->
     <div class="max-w-4xl mx-auto px-4 py-8">
-        <!-- Info Section -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <div class="flex items-start">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-lg font-medium text-blue-900">Event Creation Guidelines</h3>
-                    <div class="mt-2 text-blue-700">
-                        <ul class="list-disc list-inside space-y-1">
-                            <li>Provide clear and descriptive event title</li>
-                            <li>Include accurate date and time information</li>
-                            <li>Add detailed description to help attendees understand the event</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-sm font-medium text-gray-900">Loading event details...</h3>
         </div>
 
         <!-- Form Section -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div id="form-section" class="bg-white rounded-lg shadow-sm border border-gray-200 hidden">
             <div class="px-6 py-4 border-b border-gray-200">
                 <h2 class="text-xl font-semibold text-gray-900">Event Details</h2>
             </div>
@@ -230,10 +214,26 @@
                         Cancel
                     </a>
                     <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200" id="submitButton">
-                        <span id="submitText"><i class="fas fa-plus mr-2"></i>Create Event</span>
+                        <span id="submitText"><i class="fas fa-save mr-2"></i>Update Event</span>
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="text-center py-12 hidden">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <i class="fas fa-exclamation-triangle text-red-600"></i>
+            </div>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Error Loading Event</h3>
+            <p class="mt-1 text-sm text-gray-500" id="error-message">
+                The event could not be loaded. Please try again.
+            </p>
+            <div class="mt-6">
+                <a href="index.html" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Back to Events
+                </a>
+            </div>
         </div>
     </div>
 
@@ -244,18 +244,18 @@
                 <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
                     <i class="fas fa-check text-green-600"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 mt-2">Event Created Successfully!</h3>
+                <h3 class="text-lg font-medium text-gray-900 mt-2">Event Updated Successfully!</h3>
                 <div class="mt-2 px-7 py-3">
                     <p class="text-sm text-gray-500">
-                        The event has been created and is ready for attendee registration.
+                        The event has been updated with the new information.
                     </p>
                 </div>
                 <div class="items-center px-4 py-3">
                     <button id="go-to-events" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-auto mr-2 hover:bg-blue-700">
                         View Events
                     </button>
-                    <button id="create-another" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-auto hover:bg-gray-400">
-                        Create Another
+                    <button id="stay-here" class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-auto hover:bg-gray-400">
+                        Continue Editing
                     </button>
                 </div>
             </div>
@@ -265,12 +265,24 @@
     <script src="../assets/js/axios.min.js"></script>
     <script src="../assets/js/api.js"></script>
     <script>
+        let eventId = null;
+        let currentEvent = null;
+
+        // Get event ID from URL
+        function getEventIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
         // Load companies for selection
         async function loadCompanies() {
             try {
                 const response = await axios.get('http://localhost:3001/companies');
-                const companies = Array.isArray(response.data) ? response.data : (response.data.allCompanies || response.data); // Handle backend response format
+                const companies = Array.isArray(response.data) ? response.data : (response.data.allCompanies || response.data);
                 const select = document.getElementById('companyId');
+                
+                // Clear existing options except the first one
+                select.innerHTML = '<option value="">Select Company</option>';
                 
                 companies.forEach(company => {
                     const option = document.createElement('option');
@@ -280,6 +292,80 @@
                 });
             } catch (error) {
                 console.error('Error loading companies:', error);
+            }
+        }
+
+        // Load event data
+        async function loadEvent() {
+            try {
+                document.getElementById('loading-state').classList.remove('hidden');
+                document.getElementById('form-section').classList.add('hidden');
+                document.getElementById('error-state').classList.add('hidden');
+                
+                const response = await eventAPI.getById(eventId);
+                currentEvent = response;
+                
+                // Populate form fields
+                document.getElementById('name').value = currentEvent.name || '';
+                document.getElementById('description').value = currentEvent.description || '';
+                document.getElementById('type').value = currentEvent.type || '';
+                
+                // Handle dates - ensure proper format
+                if (currentEvent.eventDate) {
+                    const eventDate = new Date(currentEvent.eventDate);
+                    const dateStr = eventDate.toISOString().split('T')[0];
+                    document.getElementById('eventDate').value = dateStr;
+                }
+                
+                if (currentEvent.eventEndDate) {
+                    const endDate = new Date(currentEvent.eventEndDate);
+                    const endDateStr = endDate.toISOString().split('T')[0];
+                    document.getElementById('eventEndDate').value = endDateStr;
+                }
+                
+                // Handle times - extract time portion from datetime
+                if (currentEvent.startTime) {
+                    const startTimeDate = new Date(currentEvent.startTime);
+                    // Format time as HH:MM using UTC to avoid timezone issues
+                    const hours = startTimeDate.getUTCHours().toString().padStart(2, '0');
+                    const minutes = startTimeDate.getUTCMinutes().toString().padStart(2, '0');
+                    const startTimeStr = `${hours}:${minutes}`;
+                    document.getElementById('startTime').value = startTimeStr;
+                }
+                
+                if (currentEvent.endTime) {
+                    const endTimeDate = new Date(currentEvent.endTime);
+                    // Format time as HH:MM using UTC to avoid timezone issues
+                    const hours = endTimeDate.getUTCHours().toString().padStart(2, '0');
+                    const minutes = endTimeDate.getUTCMinutes().toString().padStart(2, '0');
+                    const endTimeStr = `${hours}:${minutes}`;
+                    document.getElementById('endTime').value = endTimeStr;
+                }
+                
+                document.getElementById('location').value = currentEvent.location || '';
+                document.getElementById('companyId').value = currentEvent.companyId || '';
+                
+                // Load social media fields
+                document.getElementById('facebook').value = currentEvent.facebook || '';
+                document.getElementById('instagram').value = currentEvent.instagram || '';
+                document.getElementById('linkedin').value = currentEvent.linkedin || '';
+                document.getElementById('website').value = currentEvent.website || '';
+                
+                // Load media fields
+                document.getElementById('bannerUrl').value = currentEvent.bannerUrl || '';
+                document.getElementById('logo').value = currentEvent.logo || '';
+                
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('form-section').classList.remove('hidden');
+                
+                // Setup event listeners after form is visible
+                setupFormEventListeners();
+                
+            } catch (error) {
+                console.error('Error loading event:', error);
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('error-state').classList.remove('hidden');
+                document.getElementById('error-message').textContent = 'Failed to load event. Please check if the event exists.';
             }
         }
 
@@ -343,14 +429,10 @@
             const errorElement = document.getElementById(`${fieldName}-error`);
             
             field.classList.add('border-red-300');
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-        }
-
-        function resetForm() {
-            document.getElementById('event-form').reset();
-            document.querySelectorAll('.text-red-500').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('input, textarea, select').forEach(el => el.classList.remove('border-red-300'));
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
         }
 
         function showSuccessModal() {
@@ -361,160 +443,163 @@
             document.getElementById('success-modal').classList.add('hidden');
         }
 
-        // Form submission
-        document.getElementById('event-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                return;
-            }
-
-            const submitBtn = document.getElementById('submitButton');
-            const submitText = document.getElementById('submitText');
-            const originalText = submitText.textContent;
-            
-            // Show loading state
-            submitBtn.disabled = true;
-            submitText.textContent = 'Creating...';
-
-            try {
-                const formData = new FormData(this);
-                
-                // Get form values
-                const eventDate = formData.get('eventDate');
-                const eventEndDate = formData.get('eventEndDate');
-                const startTime = formData.get('startTime');
-                const endTime = formData.get('endTime');
-                
-                // Convert date strings to proper DateTime format for backend
-                const startDateTime = new Date(`${eventDate}T${startTime}:00.000Z`);
-                const endDateTime = new Date(`${eventEndDate}T${endTime}:00.000Z`);
-                
-                const eventData = {
-                    name: formData.get('name').trim(),
-                    description: formData.get('description').trim(),
-                    type: formData.get('type'),
-                    eventDate: startDateTime.toISOString(),
-                    eventEndDate: endDateTime.toISOString(),
-                    startTime: startDateTime.toISOString(),
-                    endTime: endDateTime.toISOString(),
-                    location: formData.get('location')?.trim() || null,
-                    companyId: parseInt(formData.get('companyId')),
-                    // Social media fields
-                    facebook: formData.get('facebook')?.trim() || null,
-                    instagram: formData.get('instagram')?.trim() || null,
-                    linkedin: formData.get('linkedin')?.trim() || null,
-                    website: formData.get('website')?.trim() || null,
-                    // Media fields
-                    bannerUrl: formData.get('bannerUrl')?.trim() || null,
-                    logo: formData.get('logo')?.trim() || null,
-                    // Include other optional fields with null defaults to match backend expectation
-                    email: null,
-                    phone: null
-                };
-
-                console.log('Sending event data:', eventData);
-
-                const response = await axios.post('http://localhost:3001/events', eventData);
-                const newEvent = response.data;
-                console.log('Event created successfully:', newEvent);
-                showSuccessModal();
-                
-            } catch (error) {
-                console.error('Error creating event:', error);
-                
-                let errorMessage = 'Failed to create event. Please try again.';
-                if (error.response?.data?.error) {
-                    errorMessage = error.response.data.error;
-                } else if (error.response?.status === 400) {
-                    errorMessage = 'Please check all required fields and try again.';
-                }
-                
-                // Show error message
-                alert(errorMessage);
-                
-            } finally {
-                // Reset button state
-                submitBtn.disabled = false;
-                submitText.textContent = originalText;
-            }
-        });
-
-            // Modal event listeners
-            document.getElementById('go-to-events').addEventListener('click', function() {
-                window.location.href = 'index.html';
-            });
-
-            document.getElementById('create-another').addEventListener('click', function() {
-                hideSuccessModal();
-                resetForm();
-            });
-
-            // Real-time validation
-            document.getElementById('name').addEventListener('input', function() {
-                if (this.value.trim()) {
-                    document.getElementById('name-error').classList.add('hidden');
-                    this.classList.remove('border-red-300');
-                }
-            });
-
-            document.getElementById('eventDate').addEventListener('change', function() {
-            const eventDate = new Date(this.value);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            if (eventDate >= today) {
-                document.getElementById('eventDate-error').classList.add('hidden');
-                this.classList.remove('border-red-300');
-            }
-            
-            // Also validate end date when start date changes
-            const endDateInput = document.getElementById('eventEndDate');
-            if (endDateInput.value) {
-                validateDateRange();
-            }
-        });
-
-            document.getElementById('eventEndDate').addEventListener('change', function() {
-                const endDate = new Date(this.value);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                
-                if (endDate >= today) {
-                    document.getElementById('eventEndDate-error').classList.add('hidden');
-                    this.classList.remove('border-red-300');
-                }
-                
-                validateDateRange();
-            });
-
-            document.getElementById('startTime').addEventListener('change', function() {
-                validateTimeRange();
-            });
-
-            document.getElementById('endTime').addEventListener('change', function() {
-                validateTimeRange();
-            });
-
-        // Wait for axios to be ready
-        function waitForAxios() {
-            return new Promise((resolve) => {
-                const checkAxios = () => {
-                    if (typeof axios !== 'undefined') {
-                        resolve();
-                    } else {
-                        setTimeout(checkAxios, 100);
+        // Setup form event listeners
+        function setupFormEventListeners() {
+            // Form submission
+            const eventForm = document.getElementById('event-form');
+            if (eventForm) {
+                eventForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    if (!validateForm()) {
+                        return;
                     }
-                };
-                checkAxios();
-            });
-        }
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', async function() {
-            await waitForAxios();
-            await loadCompanies();
-        });
+                    const submitBtn = document.getElementById('submitButton');
+                    const submitText = document.getElementById('submitText');
+                    const originalText = submitText.innerHTML;
+                    
+                    // Show loading state
+                    submitBtn.disabled = true;
+                    submitText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Updating...';
+
+                    try {
+                        const formData = new FormData(this);
+                        
+                        // Get form values
+                        const eventDate = formData.get('eventDate');
+                        const eventEndDate = formData.get('eventEndDate');
+                        const startTime = formData.get('startTime');
+                        const endTime = formData.get('endTime');
+                        
+                        // Convert date strings to proper DateTime format for backend
+                        const startDateTime = new Date(`${eventDate}T${startTime}:00.000Z`);
+                        const endDateTime = new Date(`${eventEndDate}T${endTime}:00.000Z`);
+                        
+                        const eventData = {
+                            name: formData.get('name').trim(),
+                            description: formData.get('description').trim(),
+                            type: formData.get('type'),
+                            eventDate: startDateTime.toISOString(),
+                            eventEndDate: endDateTime.toISOString(),
+                            startTime: startDateTime.toISOString(),
+                            endTime: endDateTime.toISOString(),
+                            location: formData.get('location')?.trim() || null,
+                            companyId: parseInt(formData.get('companyId')),
+                            // Social media fields from form
+                            facebook: formData.get('facebook')?.trim() || null,
+                            instagram: formData.get('instagram')?.trim() || null,
+                            linkedin: formData.get('linkedin')?.trim() || null,
+                            website: formData.get('website')?.trim() || null,
+                            // Media fields from form
+                            bannerUrl: formData.get('bannerUrl')?.trim() || null,
+                            logo: formData.get('logo')?.trim() || null,
+                            // Keep existing values for other optional fields
+                            email: currentEvent.email || null,
+                            phone: currentEvent.phone || null
+                        };
+
+                        console.log('Updating event with data:', eventData);
+
+                        const response = await eventAPI.update(eventId, eventData);
+                        console.log('Event updated successfully:', response);
+                        showSuccessModal();
+                        
+                    } catch (error) {
+                        console.error('Error updating event:', error);
+                        
+                        let errorMessage = 'Failed to update event. Please try again.';
+                        if (error.response?.data?.error) {
+                            errorMessage = error.response.data.error;
+                        } else if (error.response?.status === 400) {
+                            errorMessage = 'Please check all required fields and try again.';
+                        }
+                        
+                        alert(errorMessage);
+                        
+                    } finally {
+                        // Reset button state
+                        submitBtn.disabled = false;
+                        submitText.innerHTML = originalText;
+                    }
+                });
+            }
+            // Modal event listeners
+            const goToEventsBtn = document.getElementById('go-to-events');
+            const stayHereBtn = document.getElementById('stay-here');
+            
+            if (goToEventsBtn) {
+                goToEventsBtn.addEventListener('click', function() {
+                    window.location.href = 'index.html';
+                });
+            }
+            
+            if (stayHereBtn) {
+                stayHereBtn.addEventListener('click', function() {
+                    hideSuccessModal();
+                });
+            }
+
+            // Real-time validation (same as create form)
+            const nameField = document.getElementById('name');
+            if (nameField) {
+                nameField.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        document.getElementById('name-error').classList.add('hidden');
+                        this.classList.remove('border-red-300');
+                    }
+                });
+            }
+
+            const eventDateField = document.getElementById('eventDate');
+            if (eventDateField) {
+                eventDateField.addEventListener('change', function() {
+                    const eventDate = new Date(this.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (eventDate >= today) {
+                        document.getElementById('eventDate-error').classList.add('hidden');
+                        this.classList.remove('border-red-300');
+                    }
+                    
+                    const endDateInput = document.getElementById('eventEndDate');
+                    if (endDateInput && endDateInput.value) {
+                        validateDateRange();
+                    }
+                });
+            }
+
+            const eventEndDateField = document.getElementById('eventEndDate');
+            if (eventEndDateField) {
+                eventEndDateField.addEventListener('change', function() {
+                    const endDate = new Date(this.value);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (endDate >= today) {
+                        document.getElementById('eventEndDate-error').classList.add('hidden');
+                        this.classList.remove('border-red-300');
+                    }
+                    
+                    validateDateRange();
+                });
+            }
+
+            const startTimeField = document.getElementById('startTime');
+            if (startTimeField) {
+                startTimeField.addEventListener('change', function() {
+                    validateTimeRange();
+                });
+            }
+
+            const endTimeField = document.getElementById('endTime');
+            if (endTimeField) {
+                endTimeField.addEventListener('change', function() {
+                    validateTimeRange();
+                });
+            }
+        }
 
         function validateDateRange() {
             const startDate = new Date(document.getElementById('eventDate').value);
@@ -562,6 +647,36 @@
             }
         }
 
+        // Wait for APIs to be ready
+        function waitForAPIs() {
+            return new Promise((resolve) => {
+                const checkAPIs = () => {
+                    if (typeof eventAPI !== 'undefined' && typeof axios !== 'undefined') {
+                        resolve();
+                    } else {
+                        setTimeout(checkAPIs, 100);
+                    }
+                };
+                checkAPIs();
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            eventId = getEventIdFromUrl();
+            
+            if (!eventId) {
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('error-state').classList.remove('hidden');
+                document.getElementById('error-message').textContent = 'No event ID provided.';
+                return;
+            }
+            
+            // Wait for APIs to be ready before loading
+            await waitForAPIs();
+            await loadCompanies();
+            await loadEvent();
+        });
     </script>
     
     <script src="../assets/js/navigation.js"></script>

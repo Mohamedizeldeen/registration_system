@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tickets | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-overlay { 
@@ -150,8 +150,8 @@
         async function loadTickets() {
             try {
                 showLoading();
-                const response = await TicketAPI.getAll();
-                tickets = response.data;
+                const response = await axios.get('http://localhost:3001/tickets');
+                tickets = response.data || response;
                 renderTickets(tickets);
             } catch (error) {
                 console.error('Error loading tickets:', error);
@@ -164,8 +164,8 @@
         // Load events for filter dropdown
         async function loadEvents() {
             try {
-                const response = await EventAPI.getAll();
-                events = response.data;
+                const response = await axios.get('http://localhost:3001/events');
+                events = response.data || response;
                 populateEventFilter();
             } catch (error) {
                 console.error('Error loading events:', error);
@@ -175,8 +175,8 @@
         // Load event zones for filter dropdown
         async function loadEventZones() {
             try {
-                const response = await EventZoneAPI.getAll();
-                eventZones = response.data;
+                const response = await axios.get('http://localhost:3001/event-zones');
+                eventZones = response.data || response;
                 populateZoneFilter();
             } catch (error) {
                 console.error('Error loading event zones:', error);
@@ -225,27 +225,27 @@
             ticketsTableBody.innerHTML = ticketsData.map(ticket => `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${ticket.name || ticket.type || 'Ticket'}</div>
-                        <div class="text-xs text-gray-500">${ticket.description || 'No description'}</div>
+                        <div class="text-sm font-medium text-gray-900">${ticket.name || 'Ticket'}</div>
+                        <div class="text-xs text-gray-500">${ticket.info || 'No information'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm text-gray-900">${ticket.event?.name || ticket.eventZone?.event?.name || 'N/A'}</div>
-                        <div class="text-xs text-gray-500">${ticket.event?.date || ticket.eventZone?.event?.event_date ? new Date(ticket.event?.date || ticket.eventZone?.event?.event_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'No date'}</div>
+                        <div class="text-xs text-gray-500">${ticket.event?.eventDate || ticket.eventZone?.event?.eventDate ? new Date(ticket.event?.eventDate || ticket.eventZone?.event?.eventDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) : 'No date'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${ticket.zone?.name || ticket.eventZone?.name || 'N/A'}</div>
-                        <div class="text-xs text-gray-500">${ticket.zone?.description || ticket.eventZone?.description || ''}</div>
+                        <div class="text-sm text-gray-900">${ticket.eventZone?.name || 'N/A'}</div>
+                        <div class="text-xs text-gray-500">${ticket.eventZone?.event?.name || ''}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">
-                            $${ticket.price || '0.00'} ${ticket.currency?.code || 'USD'}
+                            $${ticket.price || '0.00'}
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${ticket.available_quantity !== undefined ? ticket.available_quantity : (ticket.quantity || 'Unlimited')}</div>
+                        <div class="text-sm text-gray-900">${ticket.quantity || 'Unlimited'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm text-gray-900">${ticket.total_quantity !== undefined ? ticket.total_quantity : (ticket.quantity || 'Unlimited')}</div>
+                        <div class="text-sm text-gray-900">${ticket.quantity || 'Unlimited'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         ${getStatusBadge(ticket)}
@@ -269,9 +269,9 @@
 
         // Get status badge HTML
         function getStatusBadge(ticket) {
-            const availableQty = ticket.available_quantity !== undefined ? ticket.available_quantity : ticket.quantity;
+            const quantity = ticket.quantity;
             
-            if (availableQty > 0 || availableQty === null || availableQty === undefined) {
+            if (quantity > 0 || quantity === null || quantity === undefined) {
                 return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     <i class="fas fa-check mr-1"></i>Available
                 </span>`;
@@ -311,14 +311,14 @@
         async function viewTicket(id) {
             try {
                 showLoading();
-                const response = await TicketAPI.getById(id);
-                const ticket = response.data;
+                const response = await axios.get(`http://localhost:3001/tickets/${id}`);
+                const ticket = response.data || response;
                 
                 document.getElementById('ticketDetails').innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Ticket Type</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.type || 'N/A'}</p>
+                            <label class="block text-sm font-medium text-gray-700">Ticket Name</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.name || 'N/A'}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Price</label>
@@ -326,43 +326,33 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Event</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.event?.name || 'N/A'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.event?.name || ticket.eventZone?.event?.name || 'N/A'}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Zone</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.zone?.name || 'N/A'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.eventZone?.name || 'N/A'}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Total Quantity</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.quantity || 0}</p>
+                            <label class="block text-sm font-medium text-gray-700">Quantity</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.quantity || 'Unlimited'}</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Sold Quantity</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.sold_quantity || 0}</p>
+                            <label class="block text-sm font-medium text-gray-700">Coupon</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.coupon?.code || 'None'}</p>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Available</label>
-                            <p class="mt-1 text-sm text-gray-900">${(ticket.quantity || 0) - (ticket.sold_quantity || 0)}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Status</label>
-                            <span class="mt-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTicketStatusColor(ticket.status)}">
-                                ${ticket.status || 'Active'}
-                            </span>
-                        </div>
-                        ${ticket.description ? `
+                        ${ticket.info ? `
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">Description</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.description}</p>
+                            <label class="block text-sm font-medium text-gray-700">Information</label>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.info}</p>
                         </div>
                         ` : ''}
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Created Date</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : 'N/A'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.createdAt ? new Date(ticket.createdAt).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Last Updated</label>
-                            <p class="mt-1 text-sm text-gray-900">${ticket.updated_at ? new Date(ticket.updated_at).toLocaleDateString() : 'N/A'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleDateString() : 'N/A'}</p>
                         </div>
                     </div>
                 `;
@@ -389,7 +379,7 @@
 
             try {
                 showLoading();
-                await TicketAPI.delete(id);
+                await axios.delete(`http://localhost:3001/tickets/${id}`);
                 showAlert('Ticket deleted successfully!', 'success');
                 loadTickets(); // Reload the list
             } catch (error) {

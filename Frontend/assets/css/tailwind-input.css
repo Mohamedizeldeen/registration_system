@@ -370,3 +370,37 @@
     transform: scale(1) translateY(0);
   }
 }
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Notification Styles */
+.notification {
+  @apply fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border-l-4 text-white font-medium min-w-80 max-w-md;
+  animation: slideInRight 0.3s ease-out;
+  transition: all 0.3s ease-out;
+}
+
+.notification.success {
+  @apply bg-green-600 border-green-800;
+}
+
+.notification.error {
+  @apply bg-red-600 border-red-800;
+}
+
+.notification.warning {
+  @apply bg-orange-600 border-orange-800;
+}
+
+.notification.info {
+  @apply bg-blue-600 border-blue-800;
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>API Test</h1>
+    <div id="results"></div>
+    <button onclick="testAPI()">Test CouponAPI</button>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing API initialization...</p>';
+            
+            try {
+                // Wait for API to be available
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+                
+                console.log('CouponAPI type:', typeof window.CouponAPI);
+                console.log('CouponAPI object:', window.CouponAPI);
+                
+                if (typeof window.CouponAPI !== 'undefined') {
+                    console.log('CouponAPI methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(window.CouponAPI)));
+                    
+                    if (typeof window.CouponAPI.getAll === 'function') {
+                        results.innerHTML = '<p style="color: green;">✅ CouponAPI.getAll is available!</p>';
+                    } else {
+                        results.innerHTML = '<p style="color: red;">❌ CouponAPI.getAll is not a function</p>';
+                    }
+                } else {
+                    results.innerHTML = '<p style="color: red;">❌ CouponAPI is not available</p>';
+                }
+                
+                // Also test manual call
+                if (window.CouponAPI && typeof window.CouponAPI.getAll === 'function') {
+                    try {
+                        const response = await window.CouponAPI.getAll();
+                        results.innerHTML += '<p style="color: green;">✅ API call successful (but no backend)</p>';
+                    } catch (error) {
+                        results.innerHTML += '<p style="color: orange;">⚠️ API method works but backend not available: ' + error.message + '</p>';
+                    }
+                }
+                
+            } catch (error) {
+                results.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+
+        // Auto-test after page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testAPI, 1000);
+        });
+    </script>
+</body>
+</html>

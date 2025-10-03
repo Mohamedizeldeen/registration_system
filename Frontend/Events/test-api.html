@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Event Share System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Test Event Share System</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test API Endpoints</h2>
+            
+            <div class="space-y-4">
+                <button onclick="testEventAPI()" class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Test Get Public Event (ID: 1)
+                </button>
+                
+                <button onclick="testTicketsAPI()" class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Test Get Event Tickets (Event ID: 1)
+                </button>
+                
+                <button onclick="testRegistration()" class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    Test Attendee Registration
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-2">Test Results:</h3>
+            <div id="results" class="bg-gray-50 p-4 rounded min-h-32 font-mono text-sm overflow-auto">
+                Click a test button to see results...
+            </div>
+        </div>
+
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-blue-800 mb-2">Test Share Link:</h3>
+            <p class="text-blue-700 mb-2">If you have an event with ID 1, you can test the share system here:</p>
+            <a href="share.html?id=1" class="text-blue-600 underline hover:text-blue-800" target="_blank">
+                share.html?id=1
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+
+        function logResult(test, result) {
+            const resultsDiv = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `[${timestamp}] ${test}:\n${JSON.stringify(result, null, 2)}\n\n`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function testEventAPI() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/events/public/1`);
+                const result = await response.json();
+                logResult('GET /events/public/1', { status: response.status, data: result });
+            } catch (error) {
+                logResult('GET /events/public/1 - ERROR', { error: error.message });
+            }
+        }
+
+        async function testTicketsAPI() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/tickets/event/1`);
+                const result = await response.json();
+                logResult('GET /tickets/event/1', { status: response.status, data: result });
+            } catch (error) {
+                logResult('GET /tickets/event/1 - ERROR', { error: error.message });
+            }
+        }
+
+        async function testRegistration() {
+            const testData = {
+                firstName: 'John',
+                lastName: 'Doe',
+                eventId: 1,
+                ticketId: 1,
+                email: 'john.doe@example.com',
+                phone: '+1234567890',
+                company: 'Test Company',
+                jobTitle: 'Developer',
+                country: 'USA'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/attendees/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                const result = await response.json();
+                logResult('POST /attendees/register', { status: response.status, data: result });
+            } catch (error) {
+                logResult('POST /attendees/register - ERROR', { error: error.message });
+            }
+        }
+    </script>
+</body>
+</html>

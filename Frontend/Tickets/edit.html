@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Ticket | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .form-field-focus:focus {
@@ -117,97 +117,53 @@
                         <p class="text-xs text-gray-500 mt-1">Ticket price in USD</p>
                     </div>
 
-                    <!-- Currency -->
+                    <!-- Quantity -->
                     <div>
-                        <label for="currency_code" class="block text-sm font-medium text-gray-700 mb-2">
-                            Currency
-                        </label>
-                        <select 
-                            id="currency_code" 
-                            name="currency_code" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
-                        >
-                            <option value="USD">USD - US Dollar</option>
-                            <option value="EUR">EUR - Euro</option>
-                            <option value="GBP">GBP - British Pound</option>
-                            <option value="CAD">CAD - Canadian Dollar</option>
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1">Select the currency for this ticket</p>
-                    </div>
-
-                    <!-- Total Quantity -->
-                    <div>
-                        <label for="total_quantity" class="block text-sm font-medium text-gray-700 mb-2">
-                            Total Quantity
+                        <label for="quantity" class="block text-sm font-medium text-gray-700 mb-2">
+                            Quantity <span class="text-red-500">*</span>
                         </label>
                         <input 
                             type="number" 
-                            id="total_quantity" 
-                            name="total_quantity" 
+                            id="quantity" 
+                            name="quantity" 
                             min="1"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200" 
-                            placeholder="Leave empty for unlimited"
+                            placeholder="Enter number of tickets available"
+                            required
                         >
-                        <p class="text-xs text-gray-500 mt-1">Total number of tickets available (optional)</p>
+                        <p class="text-xs text-gray-500 mt-1">Total number of tickets available for sale</p>
                     </div>
 
-                    <!-- Available Quantity -->
+                    <!-- Coupon Selection -->
                     <div>
-                        <label for="available_quantity" class="block text-sm font-medium text-gray-700 mb-2">
-                            Available Quantity
+                        <label for="coupon_id" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-tag mr-1"></i>
+                            Discount Coupon
                         </label>
-                        <input 
-                            type="number" 
-                            id="available_quantity" 
-                            name="available_quantity" 
-                            min="0"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200" 
-                            placeholder="Leave empty for unlimited"
+                        <select 
+                            id="coupon_id" 
+                            name="coupon_id" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
                         >
-                        <p class="text-xs text-gray-500 mt-1">Currently available tickets for sale</p>
+                            <option value="">No coupon (full price)</option>
+                            <!-- Dynamic options will be loaded here -->
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Optional: Apply a discount coupon to this ticket type</p>
                     </div>
 
-                    <!-- Description -->
+                    <!-- Info/Description -->
                     <div class="md:col-span-2">
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                            Description
+                        <label for="info" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ticket Information
                         </label>
                         <textarea 
-                            id="description" 
-                            name="description" 
+                            id="info" 
+                            name="info" 
                             rows="4"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200 resize-vertical" 
                             placeholder="Describe what's included with this ticket, any restrictions, benefits, etc."
                         ></textarea>
                         <p class="text-xs text-gray-500 mt-1">Additional details about this ticket type (optional)</p>
-                    </div>
-
-                    <!-- Sale Start Date -->
-                    <div>
-                        <label for="sale_start_date" class="block text-sm font-medium text-gray-700 mb-2">
-                            Sale Start Date
-                        </label>
-                        <input 
-                            type="datetime-local" 
-                            id="sale_start_date" 
-                            name="sale_start_date" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
-                        >
-                        <p class="text-xs text-gray-500 mt-1">When tickets become available for purchase</p>
-                    </div>
-
-                    <!-- Sale End Date -->
-                    <div>
-                        <label for="sale_end_date" class="block text-sm font-medium text-gray-700 mb-2">
-                            Sale End Date
-                        </label>
-                        <input 
-                            type="datetime-local" 
-                            id="sale_end_date" 
-                            name="sale_end_date" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
-                        >
-                        <p class="text-xs text-gray-500 mt-1">When ticket sales end</p>
                     </div>
                 </div>
 
@@ -243,10 +199,9 @@
         </div>
     </div>
 
-    <!-- Include API Configuration -->
-    <script src="../assets/js/api.js"></script>
     <script>
         let eventZones = [];
+        let coupons = [];
         let ticketId = null;
         let originalTicket = null;
 
@@ -265,6 +220,7 @@
             }
             
             loadEventZones();
+            loadCoupons();
             loadTicketData();
             setupFormSubmission();
         });
@@ -272,8 +228,8 @@
         // Load event zones for dropdown
         async function loadEventZones() {
             try {
-                const response = await EventZoneAPI.getAll();
-                eventZones = response.data;
+                const response = await axios.get('http://localhost:3001/event-zones');
+                eventZones = response.data.allEventZones || response.data;
                 populateEventZoneDropdown();
             } catch (error) {
                 console.error('Error loading event zones:', error);
@@ -281,12 +237,24 @@
             }
         }
 
+        // Load coupons for dropdown
+        async function loadCoupons() {
+            try {
+                const response = await axios.get('http://localhost:3001/coupons');
+                coupons = response.data.allCoupons || response.data;
+                populateCouponDropdown();
+            } catch (error) {
+                console.error('Error loading coupons:', error);
+                // Don't show alert for coupons since they're optional
+            }
+        }
+
         // Load ticket data for editing
         async function loadTicketData() {
             try {
                 showLoading();
-                const response = await TicketAPI.getById(ticketId);
-                originalTicket = response.data;
+                const response = await axios.get(`http://localhost:3001/tickets/${ticketId}`);
+                originalTicket = response.data.ticket || response.data;
                 populateForm(originalTicket);
             } catch (error) {
                 console.error('Error loading ticket data:', error);
@@ -316,23 +284,31 @@
             });
         }
 
+        // Populate coupon dropdown
+        function populateCouponDropdown() {
+            const couponSelect = document.getElementById('coupon_id');
+            const defaultOption = couponSelect.querySelector('option[value=""]');
+            
+            // Clear existing options except the first one
+            couponSelect.innerHTML = '';
+            couponSelect.appendChild(defaultOption);
+            
+            coupons.forEach(coupon => {
+                const option = document.createElement('option');
+                option.value = coupon.id;
+                option.textContent = `${coupon.code} - ${coupon.discount}% off`;
+                couponSelect.appendChild(option);
+            });
+        }
+
         // Populate form with ticket data
         function populateForm(ticket) {
             document.getElementById('name').value = ticket.name || '';
-            document.getElementById('event_zone_id').value = ticket.event_zone_id || '';
+            document.getElementById('event_zone_id').value = ticket.eventZoneId || '';
             document.getElementById('price').value = ticket.price || '';
-            document.getElementById('currency_code').value = ticket.currency_code || 'USD';
-            document.getElementById('total_quantity').value = ticket.total_quantity || '';
-            document.getElementById('available_quantity').value = ticket.available_quantity || '';
-            document.getElementById('description').value = ticket.description || '';
-            
-            // Handle datetime fields
-            if (ticket.sale_start_date) {
-                document.getElementById('sale_start_date').value = new Date(ticket.sale_start_date).toISOString().slice(0, 16);
-            }
-            if (ticket.sale_end_date) {
-                document.getElementById('sale_end_date').value = new Date(ticket.sale_end_date).toISOString().slice(0, 16);
-            }
+            document.getElementById('quantity').value = ticket.quantity || '';
+            document.getElementById('coupon_id').value = ticket.couponId || '';
+            document.getElementById('info').value = ticket.info || '';
         }
 
         // Setup form submission
@@ -355,25 +331,37 @@
                 
                 // Collect form data
                 const formData = new FormData(e.target);
+                
+                // Get eventId from selected event zone
+                const selectedZone = eventZones.find(z => z.id == formData.get('event_zone_id'));
+                const eventId = selectedZone ? selectedZone.eventId : null;
+                
+                // Build ticket data object matching backend Ticket model schema
+                // Backend expects: name, eventId, eventZoneId, couponId, info, price, quantity
                 const ticketData = {
                     name: formData.get('name'),
-                    event_zone_id: parseInt(formData.get('event_zone_id')),
+                    eventZoneId: parseInt(formData.get('event_zone_id')),
                     price: parseFloat(formData.get('price')),
-                    currency_code: formData.get('currency_code') || 'USD',
-                    total_quantity: formData.get('total_quantity') ? parseInt(formData.get('total_quantity')) : null,
-                    available_quantity: formData.get('available_quantity') ? parseInt(formData.get('available_quantity')) : null,
-                    description: formData.get('description') || null,
-                    sale_start_date: formData.get('sale_start_date') || null,
-                    sale_end_date: formData.get('sale_end_date') || null
+                    quantity: parseInt(formData.get('quantity')),
+                    couponId: formData.get('coupon_id') ? parseInt(formData.get('coupon_id')) : null,
+                    info: formData.get('info') || null,
+                    eventId: eventId
                 };
 
-                // Validate required fields
-                if (!ticketData.name || !ticketData.event_zone_id || ticketData.price === undefined) {
-                    throw new Error('Please fill in all required fields');
+                // Validate required fields and show specific errors
+                let missingFields = [];
+                if (!ticketData.name) missingFields.push('Name');
+                if (!ticketData.eventZoneId || isNaN(ticketData.eventZoneId)) missingFields.push('Event Zone');
+                if (ticketData.price === undefined || isNaN(ticketData.price) || ticketData.price < 0) missingFields.push('Valid Price (≥ 0)');
+                if (!ticketData.quantity || isNaN(ticketData.quantity) || ticketData.quantity < 1) missingFields.push('Valid Quantity (≥ 1)');
+                
+                if (missingFields.length > 0) {
+                    showAlert('Missing or invalid required fields: ' + missingFields.join(', '), 'error');
+                    return;
                 }
 
                 // Submit to API
-                const response = await TicketAPI.update(ticketId, ticketData);
+                const response = await axios.put(`http://localhost:3001/tickets/${ticketId}`, ticketData);
                 
                 showAlert('Ticket updated successfully!', 'success');
                 
@@ -412,7 +400,7 @@
                 deleteButton.disabled = true;
                 deleteButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Deleting...';
                 
-                await TicketAPI.delete(ticketId);
+                await axios.delete(`http://localhost:3001/tickets/${ticketId}`);
                 
                 showAlert('Ticket deleted successfully!', 'success');
                 

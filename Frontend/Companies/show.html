@@ -180,7 +180,7 @@
     </div>
 
     <script src="../assets/js/axios.min.js"></script>
-    <script src="api.js"></script>
+    <script src="../assets/js/utils.js"></script>
     <script>
         // Get company ID from URL
         const companyId = Utils.getUrlParameter('id') || 1;
@@ -192,7 +192,8 @@
                 document.getElementById('company-name').textContent = 'Loading...';
                 
                 // Fetch company data from API
-                const company = await companyAPI.getById(companyId);
+                const response = await axios.get(`http://localhost:3001/companies/${companyId}`);
+                const company = response.data.company || response.data;
                 
                 if (!company) {
                     Utils.showError('Company not found');
@@ -292,7 +293,7 @@
             try {
                 Utils.showLoading('confirm-delete', 'Deleting...');
                 
-                await companyAPI.delete(companyId);
+                await axios.delete(`http://localhost:3001/companies/${companyId}`);
                 
                 Utils.showMessage('Company deleted successfully!', 'success');
                 

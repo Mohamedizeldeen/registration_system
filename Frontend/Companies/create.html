@@ -84,15 +84,7 @@
                         <p id="phone-error" class="text-red-500 text-sm mt-1 hidden"></p>
                     </div>
 
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                            Password
-                        </label>
-                        <input type="password" name="password" id="password" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               placeholder="Enter password">
-                        <p id="password-error" class="text-red-500 text-sm mt-1 hidden"></p>
-                    </div>
+
                 </div>
 
                 <!-- Form Actions -->
@@ -154,7 +146,7 @@
     </div>
 
     <script src="../assets/js/axios.min.js"></script>
-    <script src="api.js"></script>
+    <script src="../assets/js/utils.js"></script>
     <script>
         // Form validation
         function validateForm() {
@@ -210,48 +202,72 @@
         }
 
         // Form submission
-        document.getElementById('company-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                return;
-            }
-
-            const submitBtn = document.getElementById('submit-btn');
-            const originalText = submitBtn.innerHTML;
-            
-            // Show loading state
-            Utils.showLoading('submit-btn', 'Creating...');
-
-            try {
-                // Get form data
-                const formData = new FormData(this);
-                const companyData = {
-                    name: formData.get('name').trim(),
-                    address: formData.get('address').trim(),
-                    email: formData.get('email').trim(),
-                    phone: formData.get('phone').trim()
-                };
-
-                // Call API to create company
-                const newCompany = await companyAPI.create(companyData);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up form submission handler with API availability check
+            document.getElementById('company-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
                 
-                // Show success modal
-                showSuccessModal();
+                // Direct axios usage - no need to wait for API wrapper
                 
-            } catch (error) {
-                console.error('Error creating company:', error);
-                
-                // Handle validation errors from backend
-                if (error.response?.status === 400) {
-                    Utils.showError('Please check all required fields and try again.');
-                } else {
-                    Utils.showError('Failed to create company. Please try again.');
+                if (!validateForm()) {
+                    return;
                 }
-            } finally {
-                // Reset button
-                Utils.hideLoading('submit-btn', originalText);
-            }
+
+                const submitBtn = document.getElementById('submit-btn');
+                const originalText = submitBtn.textContent;
+                
+                // Show loading state
+                if (typeof Utils !== 'undefined') {
+                    Utils.showLoading('submit-btn', 'Creating...');
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating...';
+                }
+
+                try {
+                    // Get form data
+                    const formData = new FormData(this);
+                    const companyData = {
+                        name: formData.get('name').trim(),
+                        address: formData.get('address').trim(),
+                        email: formData.get('email').trim(),
+                        phone: formData.get('phone').trim()
+                    };
+
+                    // Call API to create company
+                    const response = await axios.post('http://localhost:3001/companies', companyData);
+                    const newCompany = response.data;
+                    
+                    // Show success modal
+                    showSuccessModal();
+                    
+                } catch (error) {
+                    console.error('Error creating company:', error);
+                    
+                    // Handle validation errors from backend
+                    if (error.response?.status === 400) {
+                        if (typeof Utils !== 'undefined') {
+                            Utils.showError('Please check all required fields and try again.');
+                        } else {
+                            alert('Please check all required fields and try again.');
+                        }
+                    } else {
+                        if (typeof Utils !== 'undefined') {
+                            Utils.showError('Failed to create company. Please try again.');
+                        } else {
+                            alert('Failed to create company. Please try again.');
+                        }
+                    }
+                } finally {
+                    // Reset button
+                    if (typeof Utils !== 'undefined') {
+                        Utils.hideLoading('submit-btn', originalText);
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                }
+            });
         });
 
         // Modal event listeners

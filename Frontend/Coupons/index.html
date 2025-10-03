@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discount Coupons | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-overlay { 
@@ -87,25 +87,94 @@
     </div>
 
     <!-- Include API Configuration -->
-    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <script>
         let coupons = [];
+        
+        console.log('� SCRIPT LOADED - Creating CouponAPI immediately');
+        
+        // Force create CouponAPI immediately - no waiting, no complexity
+        window.CouponAPI = {
+            async getAll() {
+                console.log('🎯 DIRECT CouponAPI.getAll called');
+                try {
+                    const response = await axios.get('http://localhost:3001/coupons');
+                    console.log('✅ Direct API response:', response.data);
+                    return response.data;
+                } catch (error) {
+                    console.error('❌ Direct API error:', error);
+                    if (error.code === 'ERR_NETWORK') {
+                        throw new Error('Cannot connect to backend server at http://localhost:3001. Please start the server.');
+                    }
+                    throw error;
+                }
+            },
+            async getById(id) {
+                console.log(`🎯 DIRECT CouponAPI.getById(${id}) called`);
+                const response = await axios.get(`http://localhost:3001/coupons/${id}`);
+                return response.data;
+            },
+            async create(data) {
+                console.log('🎯 DIRECT CouponAPI.create called');
+                const response = await axios.post('http://localhost:3001/coupons', data);
+                return response.data;
+            },
+            async update(id, data) {
+                console.log(`🎯 DIRECT CouponAPI.update(${id}) called`);
+                const response = await axios.put(`http://localhost:3001/coupons/${id}`, data);
+                return response.data;
+            },
+            async delete(id) {
+                console.log(`🎯 DIRECT CouponAPI.delete(${id}) called`);
+                const response = await axios.delete(`http://localhost:3001/coupons/${id}`);
+                return response.data;
+            }
+        };
+        
+        console.log('✅ DIRECT CouponAPI created:', window.CouponAPI);
+        console.log('✅ CouponAPI.getAll type:', typeof window.CouponAPI.getAll);
 
-        // Initialize page
+        // Initialize page - SIMPLE approach
         document.addEventListener('DOMContentLoaded', function() {
-            loadCoupons();
+            console.log('� DOM LOADED - Starting simple initialization');
+            console.log('🔍 CouponAPI check:', typeof window.CouponAPI);
+            console.log('🔍 CouponAPI.getAll check:', typeof window.CouponAPI?.getAll);
+            
+            // Direct call - CouponAPI should already exist
+            if (typeof window.CouponAPI !== 'undefined' && typeof window.CouponAPI.getAll === 'function') {
+                console.log('✅ CouponAPI ready, loading coupons...');
+                loadCoupons();
+            } else {
+                console.error('❌ CouponAPI still not available after direct creation');
+                showAlert('API initialization failed. Please refresh the page.', 'error');
+            }
         });
 
-        // Load all coupons
+
+
+
+
+        // Load all coupons - SIMPLE VERSION
         async function loadCoupons() {
+            console.log('🔄 SIMPLE loadCoupons starting...');
+            
             try {
                 showLoading();
+                console.log('📞 Calling CouponAPI.getAll() directly...');
                 const response = await CouponAPI.getAll();
-                coupons = response.data;
+                console.log('✅ Got response:', response);
+                
+                // Handle response (backend returns array directly)
+                coupons = Array.isArray(response) ? response : [];
                 renderCoupons(coupons);
+                
             } catch (error) {
-                console.error('Error loading coupons:', error);
-                showAlert('Error loading coupons. Please try again.', 'error');
+                console.error('❌ Error in loadCoupons:', error);
+                let errorMessage = 'Error loading coupons.';
+                if (error.message.includes('Cannot connect')) {
+                    errorMessage = 'Cannot connect to backend server. Please start the server on http://localhost:3001';
+                }
+                showAlert(errorMessage, 'error');
             } finally {
                 hideLoading();
             }
@@ -135,25 +204,15 @@
                         </div>
                         
                         <div class="space-y-2 mb-4">
-                            ${coupon.ticket ? `
-                            <div class="flex items-center text-gray-600">
-                                <i class="fas fa-ticket-alt mr-2 text-blue-500"></i>
-                                <span>${coupon.ticket.name || 'General'}</span>
-                            </div>
-                            ` : ''}
                             <div class="flex items-center text-gray-600">
                                 <i class="fas fa-calendar mr-2 text-red-500"></i>
-                                <span>Expires: ${coupon.expiry_date ? new Date(coupon.expiry_date).toLocaleDateString() : 'No expiry'}</span>
+                                <span>Expires: ${coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString() : 'No expiry'}</span>
                             </div>
                             <div class="flex items-center text-gray-600">
                                 <i class="fas fa-users mr-2 text-purple-500"></i>
-                                <span>Used: ${coupon.usage_count || 0}/${coupon.max_usage || 'Unlimited'}</span>
+                                <span>Used: ${coupon.usageCount || 0}/${coupon.maxUsage || 'Unlimited'}</span>
                             </div>
                         </div>
-                        
-                        ${coupon.description ? `
-                        <p class="text-gray-600 text-sm mb-4">${coupon.description.substring(0, 100)}${coupon.description.length > 100 ? '...' : ''}</p>
-                        ` : ''}
                         
                         <div class="flex justify-between items-center">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getCouponStatusColor(coupon)}">
@@ -179,9 +238,9 @@
         // Get coupon status
         function getCouponStatus(coupon) {
             const now = new Date();
-            const expiryDate = coupon.expiry_date ? new Date(coupon.expiry_date) : null;
+            const expiryDate = coupon.expiryDate ? new Date(coupon.expiryDate) : null;
             const isExpired = expiryDate && expiryDate < now;
-            const isUsedUp = coupon.max_usage && coupon.usage_count >= coupon.max_usage;
+            const isUsedUp = coupon.maxUsage && coupon.usageCount >= coupon.maxUsage;
 
             if (isExpired) return 'Expired';
             if (isUsedUp) return 'Used Up';
@@ -204,7 +263,7 @@
             try {
                 showLoading();
                 const response = await CouponAPI.getById(id);
-                const coupon = response.data;
+                const coupon = response; // Backend returns object directly
                 
                 document.getElementById('couponDetails').innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -217,10 +276,6 @@
                             <p class="mt-1 text-sm text-gray-900 font-bold text-green-600">${coupon.discount || 0}%</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Ticket Type</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.ticket?.name || 'General'}</p>
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium text-gray-700">Status</label>
                             <span class="mt-1 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getCouponStatusColor(coupon)}">
                                 ${getCouponStatus(coupon)}
@@ -228,33 +283,23 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Usage Count</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.usage_count || 0}</p>
+                            <p class="mt-1 text-sm text-gray-900">${coupon.usageCount || 0}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Max Usage</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.max_usage || 'Unlimited'}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Start Date</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.start_date ? new Date(coupon.start_date).toLocaleDateString() : 'No start date'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${coupon.maxUsage || 'Unlimited'}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Expiry Date</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.expiry_date ? new Date(coupon.expiry_date).toLocaleDateString() : 'No expiry'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString() : 'No expiry'}</p>
                         </div>
-                        ${coupon.description ? `
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium text-gray-700">Description</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.description}</p>
-                        </div>
-                        ` : ''}
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Created Date</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.created_at ? new Date(coupon.created_at).toLocaleDateString() : 'N/A'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${coupon.createdAt ? new Date(coupon.createdAt).toLocaleDateString() : 'N/A'}</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Last Updated</label>
-                            <p class="mt-1 text-sm text-gray-900">${coupon.updated_at ? new Date(coupon.updated_at).toLocaleDateString() : 'N/A'}</p>
+                            <p class="mt-1 text-sm text-gray-900">${coupon.updatedAt ? new Date(coupon.updatedAt).toLocaleDateString() : 'N/A'}</p>
                         </div>
                     </div>
                 `;

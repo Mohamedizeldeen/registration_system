@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Coupon | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="../assets/js/axios.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .form-field-focus:focus {
@@ -73,35 +73,22 @@
                         <p class="text-xs text-gray-500 mt-1">Discount percentage (1-100%)</p>
                     </div>
 
-                    <!-- Ticket -->
-                    <div>
-                        <label for="ticket_id" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-ticket-alt mr-2"></i>Applicable Ticket <span class="text-red-500">*</span>
-                        </label>
-                        <select id="ticket_id" name="ticket_id" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200">
-                            <option value="">Select a ticket</option>
-                            <!-- Dynamic options will be loaded here -->
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1">Choose which ticket this coupon applies to</p>
-                    </div>
-
                     <!-- Expiry Date -->
                     <div>
-                        <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="expiryDate" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-calendar mr-2"></i>Expiry Date <span class="text-red-500">*</span>
                         </label>
-                        <input type="date" id="expiry_date" name="expiry_date" required
+                        <input type="date" id="expiryDate" name="expiryDate" required
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200">
                         <p class="text-xs text-gray-500 mt-1">When this coupon expires</p>
                     </div>
 
                     <!-- Max Usage -->
                     <div>
-                        <label for="max_usage" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="maxUsage" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-users mr-2"></i>Maximum Usage <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" id="max_usage" name="max_usage" required min="1"
+                        <input type="number" id="maxUsage" name="maxUsage" required min="1"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200"
                             placeholder="e.g., 100">
                         <p class="text-xs text-gray-500 mt-1">Maximum number of times this coupon can be used</p>
@@ -109,25 +96,16 @@
 
                     <!-- Usage Count (Read-only) -->
                     <div>
-                        <label for="usage_count" class="block text-sm font-medium text-gray-700 mb-2">
+                        <label for="usageCount" class="block text-sm font-medium text-gray-700 mb-2">
                             <i class="fas fa-chart-line mr-2"></i>Current Usage
                         </label>
-                        <input type="number" id="usage_count" name="usage_count" readonly
+                        <input type="number" id="usageCount" name="usageCount" readonly
                             class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
                             placeholder="0">
-                        <p class="text-xs text-gray-500 mt-1">Number of times this coupon has been used (read-only)</p>
+                        <p class="text-xs text-gray-500 mt-1">Calculated from attendees with tickets using this coupon (auto-calculated)</p>
                     </div>
 
-                    <!-- Description (Optional) -->
-                    <div class="md:col-span-2">
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                            <i class="fas fa-info-circle mr-2"></i>Description
-                        </label>
-                        <textarea id="description" name="description" rows="3"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none form-field-focus transition duration-200 resize-vertical"
-                            placeholder="Optional description of the coupon offer"></textarea>
-                        <p class="text-xs text-gray-500 mt-1">Additional details about this coupon (optional)</p>
-                    </div>
+
                 </div>
 
                 <!-- Submit Buttons -->
@@ -168,10 +146,6 @@
                         
                         <div class="space-y-2 mb-4">
                             <div class="flex items-center text-gray-600">
-                                <i class="fas fa-ticket-alt mr-2 text-blue-500"></i>
-                                <span id="preview-ticket">Loading...</span>
-                            </div>
-                            <div class="flex items-center text-gray-600">
                                 <i class="fas fa-calendar mr-2 text-red-500"></i>
                                 <span>Expires: <span id="preview-expiry">Loading...</span></span>
                             </div>
@@ -192,15 +166,12 @@
         </div>
     </div>
 
-    <!-- Include API Configuration -->
-    <script src="../assets/js/api.js"></script>
     <script>
-        let tickets = [];
         let couponId = null;
         let originalCoupon = null;
 
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // Get coupon ID from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             couponId = urlParams.get('id');
@@ -213,22 +184,44 @@
                 return;
             }
             
-            loadTickets();
+            // Always ensure CouponAPI is available
+            await ensureCouponAPI();
+            
             loadCouponData();
             setupFormSubmission();
             setupPreview();
         });
 
-        // Load tickets for dropdown
-        async function loadTickets() {
-            try {
-                const response = await TicketAPI.getAll();
-                tickets = response.data;
-                populateTicketDropdown();
-            } catch (error) {
-                console.error('Error loading tickets:', error);
-                showAlert('Error loading tickets. Please refresh the page.', 'error');
+        // Ensure CouponAPI is available
+        async function ensureCouponAPI() {
+            console.log('🔧 Ensuring CouponAPI is available...');
+            
+            // Wait for axios
+            let attempts = 0;
+            while (typeof axios === 'undefined' && attempts < 50) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
             }
+            
+            // Create CouponAPI
+            window.CouponAPI = {
+                async getById(id) {
+                    console.log(`📞 CouponAPI.getById(${id}) called`);
+                    const response = await axios.get(`http://localhost:3001/coupons/${id}`);
+                    return response.data;
+                },
+                async update(id, couponData) {
+                    console.log(`📞 CouponAPI.update(${id}) called`);
+                    const response = await axios.put(`http://localhost:3001/coupons/${id}`, couponData);
+                    return response.data;
+                },
+                async delete(id) {
+                    console.log(`📞 CouponAPI.delete(${id}) called`);
+                    const response = await axios.delete(`http://localhost:3001/coupons/${id}`);
+                    return response.data;
+                }
+            };
+            console.log('✅ CouponAPI setup complete');
         }
 
         // Load coupon data for editing
@@ -236,7 +229,7 @@
             try {
                 showLoading();
                 const response = await CouponAPI.getById(couponId);
-                originalCoupon = response.data;
+                originalCoupon = response; // Backend returns object directly
                 populateForm(originalCoupon);
                 updatePreview();
             } catch (error) {
@@ -250,33 +243,15 @@
             }
         }
 
-        // Populate ticket dropdown
-        function populateTicketDropdown() {
-            const ticketSelect = document.getElementById('ticket_id');
-            const defaultOption = ticketSelect.querySelector('option[value=""]');
-            
-            // Clear existing options except the first one
-            ticketSelect.innerHTML = '';
-            ticketSelect.appendChild(defaultOption);
-            
-            tickets.forEach(ticket => {
-                const option = document.createElement('option');
-                option.value = ticket.id;
-                option.textContent = `${ticket.name} - $${ticket.price}`;
-                option.dataset.ticketName = ticket.name;
-                ticketSelect.appendChild(option);
-            });
-        }
+
 
         // Populate form with coupon data
         function populateForm(coupon) {
             document.getElementById('code').value = coupon.code || '';
             document.getElementById('discount').value = coupon.discount || '';
-            document.getElementById('ticket_id').value = coupon.ticket_id || '';
-            document.getElementById('expiry_date').value = coupon.expiry_date ? coupon.expiry_date.split('T')[0] : '';
-            document.getElementById('max_usage').value = coupon.max_usage || '';
-            document.getElementById('usage_count').value = coupon.usage_count || 0;
-            document.getElementById('description').value = coupon.description || '';
+            document.getElementById('expiryDate').value = coupon.expiryDate ? coupon.expiryDate.split('T')[0] : '';
+            document.getElementById('maxUsage').value = coupon.maxUsage || '';
+            document.getElementById('usageCount').value = coupon.usageCount || 0;
         }
 
         // Setup form submission
@@ -289,24 +264,20 @@
         function setupPreview() {
             document.getElementById('code').addEventListener('input', updatePreview);
             document.getElementById('discount').addEventListener('input', updatePreview);
-            document.getElementById('ticket_id').addEventListener('change', updatePreview);
-            document.getElementById('expiry_date').addEventListener('change', updatePreview);
-            document.getElementById('max_usage').addEventListener('input', updatePreview);
+            document.getElementById('expiryDate').addEventListener('change', updatePreview);
+            document.getElementById('maxUsage').addEventListener('input', updatePreview);
         }
 
         // Update preview card
         function updatePreview() {
             const code = document.getElementById('code').value || 'COUPON';
             const discount = document.getElementById('discount').value || '0';
-            const ticketSelect = document.getElementById('ticket_id');
-            const ticketName = ticketSelect.selectedOptions[0]?.dataset.ticketName || 'Select a ticket';
-            const expiryDate = document.getElementById('expiry_date').value;
-            const maxUsage = document.getElementById('max_usage').value || '1';
-            const usageCount = document.getElementById('usage_count').value || '0';
+            const expiryDate = document.getElementById('expiryDate').value;
+            const maxUsage = document.getElementById('maxUsage').value || '1';
+            const usageCount = document.getElementById('usageCount').value || '0';
 
             document.getElementById('preview-code').textContent = code.toUpperCase();
             document.getElementById('preview-discount').textContent = discount;
-            document.getElementById('preview-ticket').textContent = ticketName;
             document.getElementById('preview-expiry').textContent = expiryDate ? new Date(expiryDate).toLocaleDateString() : 'Select date';
             document.getElementById('preview-usage').textContent = maxUsage;
             document.getElementById('preview-used').textContent = usageCount;
@@ -349,20 +320,17 @@
                 const formData = new FormData(e.target);
                 const couponData = {
                     code: formData.get('code').toUpperCase(),
-                    discount: parseInt(formData.get('discount')),
-                    ticket_id: parseInt(formData.get('ticket_id')),
-                    expiry_date: formData.get('expiry_date'),
-                    max_usage: parseInt(formData.get('max_usage')),
-                    usage_count: parseInt(formData.get('usage_count')),
-                    description: formData.get('description') || null
+                    discount: parseFloat(formData.get('discount')),
+                    expiryDate: formData.get('expiryDate') ? new Date(formData.get('expiryDate')).toISOString() : null,
+                    maxUsage: parseInt(formData.get('maxUsage'))
                 };
 
                 // Validate required fields
-                if (!couponData.code || !couponData.discount || !couponData.ticket_id || !couponData.expiry_date || !couponData.max_usage) {
+                if (!couponData.code || !couponData.discount || !couponData.expiryDate || !couponData.maxUsage) {
                     throw new Error('Please fill in all required fields');
                 }
 
-                // Submit to API
+                // Submit to API using CouponAPI
                 const response = await CouponAPI.update(couponId, couponData);
                 
                 showAlert('Coupon updated successfully!', 'success');

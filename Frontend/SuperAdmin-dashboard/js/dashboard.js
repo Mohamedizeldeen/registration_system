@@ -455,34 +455,52 @@ function renderUpcomingEvents() {
     }
 
     container.innerHTML = upcomingEvents.map(event => {
-        const eventDate = event.event_date ? 
-            new Date(event.event_date).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            }) : 'TBA';
-        
-        const description = event.description ? 
+        const now = new Date();
+        let expired = false;
+        let eventDateStr = 'TBA';
+        let eventDateObj = null;
+        if (event.event_date) {
+            eventDateObj = new Date(event.event_date);
+            eventDateStr = eventDateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            expired = eventDateObj < now;
+        }
+
+        const description = event.description ?
             (event.description.length > 80 ? event.description.substring(0, 80) + '...' : event.description) :
             'No description available';
-            
+
         const registrationLink = `${window.location.origin}/register/${event.id}`;
-        
+
+        // Use event.logo and event.bannerURL if available
+        const logoImg = event.logo ? `<div class='flex justify-center items-center w-full mb-2'><img src="${event.logo}" alt="Logo" class="w-20 h-20 object-contain rounded-xl shadow border border-gray-100 bg-white p-2" /></div>` : '';
+        const bannerImg = event.bannerURL ? `<img src="${event.bannerURL}" alt="Banner" class="w-full h-32 object-cover rounded-xl mb-3 shadow-sm border border-gray-100" />` : '';
+
+        // Expired badge and overlay
+        const expiredBadge = expired ? `<span class="bg-red-100 text-red-700 text-xs font-semibold px-3 py-1 rounded-full ml-2 animate-pulse">Expired</span>` : '';
+        const expiredOverlay = expired ? `<div class="absolute inset-0 bg-red-50 bg-opacity-70 rounded-2xl flex items-center justify-center z-10"><span class="text-red-700 font-bold text-lg"><i class='fas fa-exclamation-circle mr-2'></i>Event Expired</span></div>` : '';
+
         return `
-            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Event</span>
-                    <span class="text-sm text-gray-500">${eventDate}</span>
+            <div class="relative bg-white border border-gray-100 rounded-2xl p-5 shadow-lg hover:shadow-xl transition duration-200 flex flex-col justify-between min-h-[370px]">
+                ${expiredOverlay}
+                ${bannerImg}
+                ${logoImg}
+                <div class="flex items-center justify-between mb-2">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">Event</span>
+                    <span class="text-sm text-gray-500">${eventDateStr}${expiredBadge}</span>
                 </div>
-                <h4 class="font-semibold text-gray-900 mb-2">${event.name || 'Untitled Event'}</h4>
-                <p class="text-sm text-gray-600 mb-3">${description}</p>
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-sm text-gray-500">${event.attendees_count || 0} attendees</span>
-                    <span class="text-sm font-medium text-green-600">$${parseFloat(event.total_revenue || 0).toFixed(2)}</span>
+                <h4 class="font-bold text-lg text-gray-900 mb-1 truncate">${event.name || 'Untitled Event'}</h4>
+                <p class="text-sm text-gray-600 mb-2 line-clamp-2">${description}</p>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-500"><i class="fas fa-users mr-1"></i>${event.attendees_count || 0} attendees</span>
+                    <span class="text-xs font-semibold text-green-600"><i class="fas fa-dollar-sign mr-1"></i>${parseFloat(event.total_revenue || 0).toFixed(2)}</span>
                 </div>
-                <div class="pt-3 border-t border-gray-100">
+                <div class="pt-2 mt-auto">
                     <button onclick="copyRegistrationLink('${registrationLink}')" 
-                            class="w-full flex items-center justify-center px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-medium rounded-lg transition duration-200">
+                            class="w-full flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition duration-200 shadow">
                         <i class="fas fa-share-alt mr-2"></i>
                         Copy Registration Link
                     </button>

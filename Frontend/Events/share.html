@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="event-title">Event Registration</title>
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Local Libraries -->
+    <script src="../assets/js/libs/jspdf.umd.min.js"></script>
+    <script src="../assets/js/libs/qrcode-local.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .ticket-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .ticket-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .ticket-card.selected {
+            border-color: #3B82F6;
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .registration-form {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .registration-form.open {
+            max-height: 1000px;
+        }
+        .banner-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Loading State -->
+    <div id="loading-state" class="min-h-screen flex items-center justify-center">
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900">Loading event details...</h3>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="hidden">
+        <!-- Event Banner Section -->
+        <div id="banner-section" class="banner-container relative">
+            <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+            <div class="relative z-10 max-w-6xl mx-auto px-4 py-16">
+                <div class="text-center text-white">
+                    <div class="mb-6">
+                        <img id="event-logo" src="" alt="Event Logo" class="w-24 h-24 mx-auto rounded-full border-4 border-white shadow-lg hidden">
+                    </div>
+                    <h1 id="event-name" class="text-4xl md:text-6xl font-bold mb-4"></h1>
+                    <p id="event-description" class="text-xl md:text-2xl mb-6 opacity-90"></p>
+                    <div class="flex flex-wrap justify-center gap-4 text-sm md:text-base">
+                        <div id="event-date-container" class="flex items-center">
+                            <i class="fas fa-calendar mr-2"></i>
+                            <span id="event-date"></span>
+                        </div>
+                        <div id="event-time-container" class="flex items-center">
+                            <i class="fas fa-clock mr-2"></i>
+                            <span id="event-time"></span>
+                        </div>
+                        <div id="event-location-container" class="items-center hidden">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <span id="event-location"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Info Section -->
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Event Details -->
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Event Details</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-700 mb-2">Event Information</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center">
+                                <i class="fas fa-tag mr-3 text-gray-400 w-4"></i>
+                                <span>Type: </span>
+                                <span id="event-type" class="font-medium ml-1"></span>
+                            </div>
+                            <div id="event-email-container" class="items-center hidden">
+                                <i class="fas fa-envelope mr-3 text-gray-400 w-4"></i>
+                                <a id="event-email" href="" title="Contact Email" class="text-blue-600 hover:underline"></a>
+                            </div>
+                            <div id="event-phone-container" class="items-center hidden">
+                                <i class="fas fa-phone mr-3 text-gray-400 w-4"></i>
+                                <span id="event-phone"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="social-links" class="hidden">
+                        <h3 class="font-semibold text-gray-700 mb-2">Follow Us</h3>
+                        <div class="flex space-x-4">
+                            <a id="facebook-link" href="" target="_blank" title="Facebook" class="text-blue-600 hover:text-blue-800 hidden">
+                                <i class="fab fa-facebook-f text-xl"></i>
+                            </a>
+                            <a id="instagram-link" href="" target="_blank" title="Instagram" class="text-pink-600 hover:text-pink-800 hidden">
+                                <i class="fab fa-instagram text-xl"></i>
+                            </a>
+                            <a id="linkedin-link" href="" target="_blank" title="LinkedIn" class="text-blue-700 hover:text-blue-900 hidden">
+                                <i class="fab fa-linkedin-in text-xl"></i>
+                            </a>
+                            <a id="website-link" href="" target="_blank" title="Website" class="text-gray-600 hover:text-gray-800 hidden">
+                                <i class="fas fa-globe text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tickets Section -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Available Tickets</h2>
+                <div id="tickets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Tickets will be loaded here -->
+                </div>
+                
+                <!-- No tickets message -->
+                <div id="no-tickets" class="text-center py-8 hidden">
+                    <i class="fas fa-ticket-alt text-gray-300 text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-600 mb-2">No Tickets Available</h3>
+                    <p class="text-gray-500">This event currently has no available tickets.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="min-h-screen items-center justify-center hidden">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Event Not Found</h3>
+            <p class="text-gray-500">The event you're looking for doesn't exist or is no longer available.</p>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registration-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-8 mx-auto p-5 border max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Register for <span id="modal-ticket-name"></span></h3>
+                <button id="close-modal" title="Close" class="text-gray-400 hover:text-gray-600 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="registration-form" class="space-y-4">
+                <input type="hidden" id="ticket-id" name="ticketId">
+                <input type="hidden" id="event-id" name="eventId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                        <input type="text" id="firstName" name="firstName" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter your first name">
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                        <input type="text" id="lastName" name="lastName" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter your last name">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                    <input type="email" id="email" name="email" required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Enter your email address">
+                </div>
+                
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                    <div class="flex gap-2">
+                        <select id="countryCode" name="countryCode" required title="Select country code"
+                                class="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Code</option>
+                            <!-- Country codes will be populated by JavaScript -->
+                        </select>
+                        <input type="tel" id="phone" name="phone" required 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter phone number" pattern="[0-9+\-\s()]+">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="company" class="block text-sm font-medium text-gray-700 mb-1">Company *</label>
+                        <input type="text" id="company" name="company" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter your company name">
+                    </div>
+                    <div>
+                        <label for="jobTitle" class="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+                        <input type="text" id="jobTitle" name="jobTitle" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Enter your job title">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="country" class="block text-sm font-medium text-gray-700 mb-1">Country *</label>
+                    <select id="country" name="country" required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select your country</option>
+                        <!-- Countries will be populated by JavaScript -->
+                    </select>
+                </div>
+
+                <!-- Coupon and Price Section -->
+                <div class="border-t pt-4 mt-4">
+                    <div class="mb-4">
+                        <label for="couponCode" class="block text-sm font-medium text-gray-700 mb-1">Coupon Code (Optional)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="couponCode" name="couponCode" 
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Enter coupon code">
+                            <button type="button" id="applyCouponBtn" 
+                                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 disabled:bg-gray-400">
+                                Apply
+                            </button>
+                        </div>
+                        <div id="couponMessage" class="mt-1 text-sm hidden">
+                            <!-- Coupon validation messages will appear here -->
+                        </div>
+                    </div>
+
+                    <!-- Price Summary -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-2">Price Summary</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Ticket Price:</span>
+                                <span id="originalPrice">$0.00</span>
+                            </div>
+                            <div id="discountRow" class="justify-between text-green-600 hidden">
+                                <span>Discount (<span id="discountPercent">0</span>%):</span>
+                                <span id="discountAmount">-$0.00</span>
+                            </div>
+                            <div class="border-t pt-2 flex justify-between font-semibold">
+                                <span>Total:</span>
+                                <span id="totalPrice">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancel-registration" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-btn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 flex items-center">
+                        <span id="submit-text">Register</span>
+                        <i id="submit-loading" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                    </button>
+                </div>"
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border max-w-md shadow-lg rounded-md bg-white">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                    <i class="fas fa-check text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Registration Successful!</h3>
+                <p class="text-gray-500 mb-6">Your registration has been completed. Your badge will be downloaded automatically.</p>
+                <button id="close-success-modal" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001';
+        let currentEvent = null;
+        let currentTickets = [];
+        let currentTicket = null;
+        let appliedCoupon = null;
+        let originalTicketPrice = 0;
+
+        // Check if required libraries are loaded
+        function checkLibraries() {
+            if (typeof QRCode === 'undefined') {
+                console.error('QRCode library not loaded');
+                return false;
+            }
+            if (typeof QRCode.toCanvas !== 'function') {
+                console.error('QRCode.toCanvas method not available');
+                return false;
+            }
+            if (typeof window.jspdf === 'undefined') {
+                console.error('jsPDF library not loaded');
+                return false;
+            }
+            return true;
+        }
+
+        // Wait for libraries to load
+        function waitForLibraries() {
+            return new Promise((resolve) => {
+                const checkInterval = setInterval(() => {
+                    if (checkLibraries()) {
+                        clearInterval(checkInterval);
+                        resolve(true);
+                    }
+                }, 100);
+
+                // Timeout after 5 seconds
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    resolve(false);
+                }, 5000);
+            });
+        }
+
+        // Check if image URL is safe to use (not external to avoid CORS issues)
+        function isSafeImageUrl(url) {
+            if (!url) return false;
+            // Allow data URLs and relative/local URLs
+            return url.startsWith('data:') || 
+                   url.startsWith('/') || 
+                   url.startsWith('./') || 
+                   url.startsWith('../') ||
+                   url.includes(window.location.host);
+        }
+
+                // Format time from 24-hour format to readable format
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            
+            try {
+                // Handle different time formats
+                let time;
+                
+                if (timeString.includes('T')) {
+                    // ISO format: "2025-01-01T14:30:00.000Z"
+                    time = new Date(timeString);
+                } else if (timeString.includes(':')) {
+                    // Time string format: "14:30:00" or "14:30"
+                    const [hours, minutes, seconds] = timeString.split(':');
+                    time = new Date();
+                    time.setHours(parseInt(hours), parseInt(minutes), seconds ? parseInt(seconds) : 0);
+                } else {
+                    return timeString; // Return as-is if format is unknown
+                }
+                
+                // Format to readable time
+                return time.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (error) {
+                console.error('Error formatting time:', error);
+                return timeString; // Return original if formatting fails
+            }
+        }
+
+        // Format date range
+        function formatDateRange(startDate, endDate) {
+            if (!startDate) return '';
+            
+            try {
+                const start = new Date(startDate);
+                const end = endDate ? new Date(endDate) : null;
+                
+                if (!end || start.toDateString() === end.toDateString()) {
+                    // Single day event
+                    return start.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                } else {
+                    // Multi-day event
+                    const startStr = start.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    const endStr = end.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    return `${startStr} - ${endStr}`;
+                }
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return startDate;
+            }
+        }
+
+        // Get event ID from URL
+        function getEventId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // Load event details
+        async function loadEventDetails() {
+            const eventId = getEventId();
+            if (!eventId) {
+                showErrorState();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/events/public/${eventId}`);
+                if (!response.ok) {
+                    throw new Error('Event not found');
+                }
+                
+                const event = await response.json();
+                currentEvent = event;
+                displayEventDetails(event);
+                await loadEventTickets(eventId);
+                
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading event:', error);
+                showErrorState();
+            }
+        }
+
+        // Display event details
+        function displayEventDetails(event) {
+            document.getElementById('event-title').textContent = `${event.name} - Registration`;
+            document.getElementById('event-name').textContent = event.name;
+            document.getElementById('event-description').textContent = event.description;
+            document.getElementById('event-type').textContent = event.type;
+            document.getElementById('event-id').value = event.id;
+
+            // Format and display date
+            const formattedDate = formatDateRange(event.eventDate, event.eventEndDate);
+            document.getElementById('event-date').textContent = formattedDate;
+
+            // Format and display time
+            const startTimeFormatted = formatTime(event.startTime);
+            const endTimeFormatted = formatTime(event.endTime);
+            const timeDisplay = startTimeFormatted && endTimeFormatted 
+                ? `${startTimeFormatted} - ${endTimeFormatted}`
+                : startTimeFormatted || endTimeFormatted || 'Time TBA';
+            document.getElementById('event-time').textContent = timeDisplay;
+
+            // Set banner background if available
+            if (event.bannerUrl) {
+                document.getElementById('banner-section').style.backgroundImage = `url(${event.bannerUrl})`;
+                document.getElementById('banner-section').style.backgroundSize = 'cover';
+                document.getElementById('banner-section').style.backgroundPosition = 'center';
+            }
+
+            // Display logo if available
+            if (event.logo) {
+                const logoImg = document.getElementById('event-logo');
+                logoImg.src = event.logo;
+                logoImg.classList.remove('hidden');
+            }
+
+            // Display location if available
+            if (event.location) {
+                document.getElementById('event-location').textContent = event.location;
+                const locationContainer = document.getElementById('event-location-container');
+                locationContainer.classList.remove('hidden');
+                locationContainer.classList.add('flex');
+            }
+
+            // Display contact info if available
+            if (event.email) {
+                const emailLink = document.getElementById('event-email');
+                emailLink.href = `mailto:${event.email}`;
+                emailLink.textContent = event.email;
+                const emailContainer = document.getElementById('event-email-container');
+                emailContainer.classList.remove('hidden');
+                emailContainer.classList.add('flex');
+            }
+
+            if (event.phone) {
+                document.getElementById('event-phone').textContent = event.phone;
+                const phoneContainer = document.getElementById('event-phone-container');
+                phoneContainer.classList.remove('hidden');
+                phoneContainer.classList.add('flex');
+            }
+
+            // Display social links
+            let hasSocialLinks = false;
+            if (event.facebook) {
+                document.getElementById('facebook-link').href = event.facebook;
+                document.getElementById('facebook-link').classList.remove('hidden');
+                hasSocialLinks = true;
+            }
+            if (event.instagram) {
+                document.getElementById('instagram-link').href = event.instagram;
+                document.getElementById('instagram-link').classList.remove('hidden');
+                hasSocialLinks = true;
+            }
+            if (event.linkedin) {
+                document.getElementById('linkedin-link').href = event.linkedin;
+                document.getElementById('linkedin-link').classList.remove('hidden');
+                hasSocialLinks = true;
+            }
+            if (event.website) {
+                document.getElementById('website-link').href = event.website;
+                document.getElementById('website-link').classList.remove('hidden');
+                hasSocialLinks = true;
+            }
+
+            if (hasSocialLinks) {
+                document.getElementById('social-links').classList.remove('hidden');
+            }
+        }
+
+        // Load event tickets
+        async function loadEventTickets(eventId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/tickets/event/${eventId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load tickets');
+                }
+                
+                const tickets = await response.json();
+                currentTickets = tickets;
+                displayTickets(tickets);
+            } catch (error) {
+                console.error('Error loading tickets:', error);
+                document.getElementById('no-tickets').classList.remove('hidden');
+            }
+        }
+
+        // Display tickets
+        function displayTickets(tickets) {
+            const ticketsGrid = document.getElementById('tickets-grid');
+            
+            if (tickets.length === 0) {
+                document.getElementById('no-tickets').classList.remove('hidden');
+                return;
+            }
+
+            tickets.forEach(ticket => {
+                const ticketCard = createTicketCard(ticket);
+                ticketsGrid.appendChild(ticketCard);
+            });
+        }
+
+        // Create ticket card
+        function createTicketCard(ticket) {
+            const card = document.createElement('div');
+            card.className = 'ticket-card bg-white border rounded-lg p-6 cursor-pointer';
+            card.onclick = () => openRegistrationModal(ticket);
+
+            const price = parseFloat(ticket.price);
+            const priceDisplay = price === 0 ? 'Free' : `$${price.toFixed(2)}`;
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">${ticket.name || 'General Admission'}</h3>
+                    <span class="text-2xl font-bold text-blue-600">${priceDisplay}</span>
+                </div>
+                <p class="text-gray-600 mb-4">${ticket.info || 'Standard event ticket'}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">Quantity: ${ticket.quantity}</span>
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200">
+                        Register Now
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Open registration modal
+        function openRegistrationModal(ticket) {
+            currentTicket = ticket;
+            originalTicketPrice = parseFloat(ticket.price) || 0;
+            appliedCoupon = null;
+            
+            document.getElementById('modal-ticket-name').textContent = ticket.name || 'General Admission';
+            document.getElementById('ticket-id').value = ticket.id;
+            
+            // Reset coupon field
+            document.getElementById('couponCode').value = '';
+            resetCoupon();
+            
+            // Calculate initial price
+            calculatePrice();
+            
+            document.getElementById('registration-modal').classList.remove('hidden');
+        }
+
+        // Close registration modal
+        function closeRegistrationModal() {
+            document.getElementById('registration-modal').classList.add('hidden');
+            document.getElementById('registration-form').reset();
+        }
+
+        // Handle registration form submission
+        async function handleRegistration(formData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/attendees/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Registration failed');
+                }
+
+                const result = await response.json();
+                closeRegistrationModal();
+                showSuccessModal();
+                
+                // Generate and download badge (wait for libraries to load)
+                const librariesReady = await waitForLibraries();
+                if (librariesReady) {
+                    await generateBadge(result.attendee);
+                } else {
+                    console.error('Cannot generate badge: Required libraries failed to load');
+                    alert('Badge generation is temporarily unavailable. Please contact event organizers for your badge.');
+                }
+                
+                return result;
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Registration failed. Please try again.');
+            }
+        }
+
+        // Generate QR code data
+        function generateQRData(attendee) {
+            return JSON.stringify({
+                attendeeId: attendee.id,
+                eventId: attendee.eventId,
+                name: `${attendee.firstName} ${attendee.lastName}`,
+                email: attendee.email,
+                company: attendee.company,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        // Generate and download PDF badge
+        async function generateBadge(attendee) {
+            try {
+                const { jsPDF } = window.jspdf;
+                
+                // A6 size in points (1 point = 1/72 inch)
+                // A6 = 105mm × 148mm = 297.6 × 419.5 points
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'pt',
+                    format: [297.6, 419.5]
+                });
+
+                const width = 297.6;
+                const height = 419.5;
+
+                // Set background
+                pdf.setFillColor(245, 247, 250);
+                pdf.rect(0, 0, width, height, 'F');
+
+                // Add border
+                pdf.setDrawColor(59, 130, 246);
+                pdf.setLineWidth(3);
+                pdf.rect(10, 10, width - 20, height - 20);
+
+                // Add event logo if available and safe to use
+                let logoAdded = false;
+                if (currentEvent.logo && isSafeImageUrl(currentEvent.logo)) {
+                    try {
+                        pdf.addImage(currentEvent.logo, 'JPEG', width/2 - 30, 25, 60, 60);
+                        logoAdded = true;
+                    } catch (e) {
+                        console.log('Could not add logo to PDF:', e.message);
+                    }
+                } else if (currentEvent.logo) {
+                    console.log('Skipping external logo to avoid CORS issues:', currentEvent.logo);
+                }
+
+                // Event name
+                pdf.setFontSize(14);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(59, 130, 246);
+                const eventNameLines = pdf.splitTextToSize(currentEvent.name, width - 40);
+                pdf.text(eventNameLines, width/2, logoAdded ? 110 : 60, { align: 'center' });
+
+                // Attendee name
+                pdf.setFontSize(18);
+                pdf.setFont('helvetica', 'bold');
+                pdf.setTextColor(0, 0, 0);
+                const fullName = `${attendee.firstName} ${attendee.lastName}`;
+                pdf.text(fullName, width/2, logoAdded ? 150 : 100, { align: 'center' });
+
+                // Job title and company
+                let yPosition = logoAdded ? 175 : 125;
+                pdf.setFontSize(12);
+                pdf.setFont('helvetica', 'normal');
+                pdf.setTextColor(75, 85, 99);
+
+                if (attendee.jobTitle) {
+                    pdf.text(attendee.jobTitle, width/2, yPosition, { align: 'center' });
+                    yPosition += 20;
+                }
+
+                if (attendee.company) {
+                    pdf.text(attendee.company, width/2, yPosition, { align: 'center' });
+                    yPosition += 30;
+                }
+
+                // Generate QR code
+                const qrData = generateQRData(attendee);
+                const canvas = document.createElement('canvas');
+                
+                // Check if QRCode library is loaded
+                if (typeof QRCode === 'undefined') {
+                    throw new Error('QRCode library not loaded');
+                }
+                
+                await QRCode.toCanvas(canvas, qrData, {
+                    width: 120,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                });
+
+                // Add QR code to PDF
+                const qrImageData = canvas.toDataURL('image/png');
+                pdf.addImage(qrImageData, 'PNG', width/2 - 60, yPosition + 10, 120, 120);
+
+                // Add QR code label
+                pdf.setFontSize(10);
+                pdf.setTextColor(107, 114, 128);
+                pdf.text('Scan for event access', width/2, yPosition + 150, { align: 'center' });
+
+                // Add footer
+                pdf.setFontSize(8);
+                pdf.text('This badge is required for event entry', width/2, height - 30, { align: 'center' });
+
+                // Download the PDF
+                pdf.save(`${attendee.firstName}_${attendee.lastName}_Badge.pdf`);
+
+            } catch (error) {
+                console.error('Error generating badge:', error);
+                alert('Could not generate badge. Please contact event organizers.');
+            }
+        }
+
+        // Show success modal
+        function showSuccessModal() {
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        // Show error state
+        function showErrorState() {
+            document.getElementById('loading-state').classList.add('hidden');
+            const errorState = document.getElementById('error-state');
+            errorState.classList.remove('hidden');
+            errorState.classList.add('flex');
+        }
+
+        // Event listeners
+        document.getElementById('close-modal').addEventListener('click', closeRegistrationModal);
+        document.getElementById('cancel-registration').addEventListener('click', closeRegistrationModal);
+        document.getElementById('close-success-modal').addEventListener('click', () => {
+            document.getElementById('success-modal').classList.add('hidden');
+        });
+
+        // Handle registration form submission
+        document.getElementById('registration-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const countryCode = formData.get('countryCode');
+            const phoneNumber = formData.get('phone');
+            const fullPhone = countryCode && phoneNumber ? `${countryCode} ${phoneNumber}` : phoneNumber;
+            
+            const priceCalculation = calculatePrice();
+            
+            const registrationData = {
+                ticketId: parseInt(formData.get('ticketId')),
+                eventId: parseInt(formData.get('eventId')),
+                firstName: formData.get('firstName').trim(),
+                lastName: formData.get('lastName').trim(),
+                email: formData.get('email').trim(),
+                phone: fullPhone.trim(),
+                company: formData.get('company').trim(),
+                jobTitle: formData.get('jobTitle').trim(),
+                country: formData.get('country'),
+                couponId: appliedCoupon ? appliedCoupon.id : null,
+                couponCode: appliedCoupon ? appliedCoupon.code : null,
+                originalPrice: priceCalculation.originalPrice,
+                discount: priceCalculation.discount,
+                discountAmount: priceCalculation.discountAmount,
+                totalPrice: priceCalculation.totalPrice
+            };
+
+            // Validate form data
+            const validationErrors = validateForm(registrationData);
+            if (validationErrors.length > 0) {
+                alert('Please fix the following errors:\n\n' + validationErrors.join('\n'));
+                return;
+            }
+
+            setLoadingState(true);
+            try {
+                await handleRegistration(registrationData);
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        // Show/hide loading state
+        function setLoadingState(loading) {
+            const submitBtn = document.getElementById('submit-btn');
+            const submitText = document.getElementById('submit-text');
+            const submitLoading = document.getElementById('submit-loading');
+            
+            if (loading) {
+                submitBtn.disabled = true;
+                submitText.textContent = 'Registering...';
+                submitLoading.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false;
+                submitText.textContent = 'Register';
+                submitLoading.classList.add('hidden');
+            }
+        }
+
+        // Countries data
+        const countries = [
+            'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
+            'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+            'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
+            'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+            'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Democratic Republic of the Congo', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador',
+            'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France',
+            'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau',
+            'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland',
+            'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait',
+            'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
+            'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico',
+            'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru',
+            'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Korea', 'North Macedonia', 'Norway', 'Oman',
+            'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal',
+            'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe',
+            'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
+            'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
+            'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey',
+            'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu',
+            'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
+        ];
+
+        // Country codes data
+        const countryCodes = [
+            { country: 'United States', code: '+1' },
+            { country: 'Canada', code: '+1' },
+            { country: 'United Kingdom', code: '+44' },
+            { country: 'Germany', code: '+49' },
+            { country: 'France', code: '+33' },
+            { country: 'Italy', code: '+39' },
+            { country: 'Spain', code: '+34' },
+            { country: 'Netherlands', code: '+31' },
+            { country: 'Belgium', code: '+32' },
+            { country: 'Switzerland', code: '+41' },
+            { country: 'Austria', code: '+43' },
+            { country: 'Sweden', code: '+46' },
+            { country: 'Norway', code: '+47' },
+            { country: 'Denmark', code: '+45' },
+            { country: 'Finland', code: '+358' },
+            { country: 'Poland', code: '+48' },
+            { country: 'Czech Republic', code: '+420' },
+            { country: 'Hungary', code: '+36' },
+            { country: 'Romania', code: '+40' },
+            { country: 'Bulgaria', code: '+359' },
+            { country: 'Greece', code: '+30' },
+            { country: 'Turkey', code: '+90' },
+            { country: 'Russia', code: '+7' },
+            { country: 'Ukraine', code: '+380' },
+            { country: 'Belarus', code: '+375' },
+            { country: 'Lithuania', code: '+370' },
+            { country: 'Latvia', code: '+371' },
+            { country: 'Estonia', code: '+372' },
+            { country: 'China', code: '+86' },
+            { country: 'Japan', code: '+81' },
+            { country: 'South Korea', code: '+82' },
+            { country: 'India', code: '+91' },
+            { country: 'Pakistan', code: '+92' },
+            { country: 'Bangladesh', code: '+880' },
+            { country: 'Sri Lanka', code: '+94' },
+            { country: 'Nepal', code: '+977' },
+            { country: 'Thailand', code: '+66' },
+            { country: 'Vietnam', code: '+84' },
+            { country: 'Malaysia', code: '+60' },
+            { country: 'Singapore', code: '+65' },
+            { country: 'Indonesia', code: '+62' },
+            { country: 'Philippines', code: '+63' },
+            { country: 'Australia', code: '+61' },
+            { country: 'New Zealand', code: '+64' },
+            { country: 'South Africa', code: '+27' },
+            { country: 'Egypt', code: '+20' },
+            { country: 'Nigeria', code: '+234' },
+            { country: 'Kenya', code: '+254' },
+            { country: 'Ghana', code: '+233' },
+            { country: 'Morocco', code: '+212' },
+            { country: 'Algeria', code: '+213' },
+            { country: 'Tunisia', code: '+216' },
+            { country: 'Libya', code: '+218' },
+            { country: 'Sudan', code: '+249' },
+            { country: 'Ethiopia', code: '+251' },
+            { country: 'Brazil', code: '+55' },
+            { country: 'Argentina', code: '+54' },
+            { country: 'Chile', code: '+56' },
+            { country: 'Colombia', code: '+57' },
+            { country: 'Peru', code: '+51' },
+            { country: 'Venezuela', code: '+58' },
+            { country: 'Ecuador', code: '+593' },
+            { country: 'Uruguay', code: '+598' },
+            { country: 'Paraguay', code: '+595' },
+            { country: 'Bolivia', code: '+591' },
+            { country: 'Mexico', code: '+52' },
+            { country: 'Guatemala', code: '+502' },
+            { country: 'Honduras', code: '+504' },
+            { country: 'El Salvador', code: '+503' },
+            { country: 'Nicaragua', code: '+505' },
+            { country: 'Costa Rica', code: '+506' },
+            { country: 'Panama', code: '+507' },
+            { country: 'Cuba', code: '+53' },
+            { country: 'Jamaica', code: '+1876' },
+            { country: 'Dominican Republic', code: '+1809' },
+            { country: 'Haiti', code: '+509' },
+            { country: 'Puerto Rico', code: '+1787' },
+            { country: 'Israel', code: '+972' },
+            { country: 'Palestine', code: '+970' },
+            { country: 'Lebanon', code: '+961' },
+            { country: 'Syria', code: '+963' },
+            { country: 'Jordan', code: '+962' },
+            { country: 'Iraq', code: '+964' },
+            { country: 'Iran', code: '+98' },
+            { country: 'Saudi Arabia', code: '+966' },
+            { country: 'United Arab Emirates', code: '+971' },
+            { country: 'Kuwait', code: '+965' },
+            { country: 'Qatar', code: '+974' },
+            { country: 'Bahrain', code: '+973' },
+            { country: 'Oman', code: '+968' },
+            { country: 'Yemen', code: '+967' }
+        ];
+
+        // Populate countries dropdown
+        function populateCountries() {
+            const countrySelect = document.getElementById('country');
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                countrySelect.appendChild(option);
+            });
+        }
+
+        // Populate country codes dropdown
+        function populateCountryCodes() {
+            const countryCodeSelect = document.getElementById('countryCode');
+            countryCodes.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.code;
+                option.textContent = `${item.code} (${item.country})`;
+                countryCodeSelect.appendChild(option);
+            });
+        }
+
+        // Auto-select country code when country is selected
+        function setupCountryCodeSync() {
+            const countrySelect = document.getElementById('country');
+            const countryCodeSelect = document.getElementById('countryCode');
+            
+            countrySelect.addEventListener('change', function() {
+                const selectedCountry = this.value;
+                const matchingCode = countryCodes.find(item => item.country === selectedCountry);
+                if (matchingCode) {
+                    countryCodeSelect.value = matchingCode.code;
+                }
+            });
+        }
+
+        // Validate coupon code
+        async function validateCoupon(couponCode) {
+            if (!couponCode || !couponCode.trim()) {
+                return { valid: false, message: 'Please enter a coupon code' };
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/coupons/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: couponCode.trim() })
+                });
+
+                if (!response.ok) {
+                    return { valid: false, message: 'Invalid or expired coupon code' };
+                }
+
+                const coupon = await response.json();
+                
+                // Check if coupon is still valid
+                if (coupon.expiryDate) {
+                    const expiryDate = new Date(coupon.expiryDate);
+                    if (expiryDate < new Date()) {
+                        return { valid: false, message: 'Coupon has expired' };
+                    }
+                }
+
+                // Check usage limit
+                if (coupon.maxUsage && coupon.usageCount >= coupon.maxUsage) {
+                    return { valid: false, message: 'Coupon usage limit reached' };
+                }
+
+                return { 
+                    valid: true, 
+                    coupon: coupon,
+                    message: `Coupon applied! ${coupon.discount}% discount` 
+                };
+            } catch (error) {
+                console.error('Error validating coupon:', error);
+                return { valid: false, message: 'Error validating coupon. Please try again.' };
+            }
+        }
+
+        // Calculate price with discount
+        function calculatePrice() {
+            const originalPrice = originalTicketPrice;
+            let discount = 0;
+            let discountAmount = 0;
+            let totalPrice = originalPrice;
+
+            if (appliedCoupon) {
+                discount = parseFloat(appliedCoupon.discount) || 0;
+                discountAmount = (originalPrice * discount) / 100;
+                totalPrice = originalPrice - discountAmount;
+            }
+
+            // Update price display
+            document.getElementById('originalPrice').textContent = `$${originalPrice.toFixed(2)}`;
+            document.getElementById('totalPrice').textContent = `$${totalPrice.toFixed(2)}`;
+            
+            const discountRow = document.getElementById('discountRow');
+            if (appliedCoupon && discount > 0) {
+                document.getElementById('discountPercent').textContent = discount.toFixed(0);
+                document.getElementById('discountAmount').textContent = `-$${discountAmount.toFixed(2)}`;
+                discountRow.classList.remove('hidden');
+                discountRow.classList.add('flex');
+            } else {
+                discountRow.classList.add('hidden');
+                discountRow.classList.remove('flex');
+            }
+
+            return { originalPrice, discount, discountAmount, totalPrice };
+        }
+
+        // Show coupon message
+        function showCouponMessage(message, type = 'info') {
+            const messageDiv = document.getElementById('couponMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `mt-1 text-sm ${
+                type === 'success' ? 'text-green-600' : 
+                type === 'error' ? 'text-red-600' : 'text-blue-600'
+            }`;
+            messageDiv.classList.remove('hidden');
+        }
+
+        // Hide coupon message
+        function hideCouponMessage() {
+            document.getElementById('couponMessage').classList.add('hidden');
+        }
+
+        // Apply coupon
+        async function applyCoupon() {
+            const couponCode = document.getElementById('couponCode').value;
+            const applyBtn = document.getElementById('applyCouponBtn');
+            
+            // Show loading state
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Applying...';
+            
+            try {
+                const result = await validateCoupon(couponCode);
+                
+                if (result.valid) {
+                    appliedCoupon = result.coupon;
+                    showCouponMessage(result.message, 'success');
+                    calculatePrice();
+                    applyBtn.textContent = 'Applied';
+                    applyBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    applyBtn.classList.add('bg-gray-500');
+                } else {
+                    appliedCoupon = null;
+                    showCouponMessage(result.message, 'error');
+                    calculatePrice();
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = 'Apply';
+                }
+            } catch (error) {
+                showCouponMessage('Error applying coupon. Please try again.', 'error');
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+            }
+        }
+
+        // Reset coupon when code changes
+        function resetCoupon() {
+            appliedCoupon = null;
+            hideCouponMessage();
+            calculatePrice();
+            
+            const applyBtn = document.getElementById('applyCouponBtn');
+            applyBtn.disabled = false;
+            applyBtn.textContent = 'Apply';
+            applyBtn.classList.remove('bg-gray-500');
+            applyBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        }
+
+        // Validate form before submission
+        function validateForm(formData) {
+            const errors = [];
+            
+            if (!formData.firstName.trim()) errors.push('First name is required');
+            if (!formData.lastName.trim()) errors.push('Last name is required');
+            if (!formData.email.trim()) errors.push('Email is required');
+            if (!formData.phone.trim()) errors.push('Phone number is required');
+            if (!formData.company.trim()) errors.push('Company is required');
+            if (!formData.jobTitle.trim()) errors.push('Job title is required');
+            if (!formData.country.trim()) errors.push('Country is required');
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (formData.email && !emailRegex.test(formData.email)) {
+                errors.push('Please enter a valid email address');
+            }
+            
+            // Phone validation
+            const phoneRegex = /^[0-9+\-\s()]+$/;
+            if (formData.phone && !phoneRegex.test(formData.phone)) {
+                errors.push('Please enter a valid phone number');
+            }
+            
+            return errors;
+        }
+
+        // Setup coupon event listeners
+        function setupCouponListeners() {
+            document.getElementById('applyCouponBtn').addEventListener('click', applyCoupon);
+            document.getElementById('couponCode').addEventListener('input', resetCoupon);
+        }
+
+        // Load event details on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateCountries();
+            populateCountryCodes();
+            setupCountryCodeSync();
+            setupCouponListeners();
+            loadEventDetails();
+        });
+    </script>
+</body>
+</html>
