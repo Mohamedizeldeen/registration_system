@@ -1,5 +1,6 @@
 import express from "express";
 import "dotenv/config";
+import helmet from "helmet";
 import userRoutes from "./routes/user.routes";
 import companyRoutes from "./routes/company.routes";
 import eventRoutes from "./routes/event.routes";
@@ -15,6 +16,7 @@ import cors from "cors";
 
 
 const app = express();
+app.use(helmet());
 const port = 3001;
 
 app.use(cors({
