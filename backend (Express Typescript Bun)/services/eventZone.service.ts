@@ -1,5 +1,13 @@
 import { PrismaClient } from "../generated/prisma";
+import zod from "zod";
+
 const prisma = new PrismaClient();
+
+const eventZoneSchema = zod.object({
+    eventId: zod.number().min(1),
+    name: zod.string().min(2).max(100),
+    capacity: zod.number().min(1)
+});
 
 export const getAllEventZones = async () => {
     if (!prisma.eventZone) {
@@ -24,8 +32,9 @@ export const createEventZone = async (
     name: string,
     capacity: number
 ) => {
-    if (!eventId || !name || !capacity) {
-        throw new Error("All fields (eventId, name, capacity) are required");
+    const validation = eventZoneSchema.safeParse({ eventId, name, capacity });
+    if (!validation.success) {
+        throw new Error("Invalid input");
     }
     return await prisma.eventZone.create({
         data: {
@@ -41,11 +50,9 @@ export const updateEventZone = async (
     name: string,
     capacity: number
 ) => {
-    if (!id) {
-        throw new Error("EventZone ID is required");
-    }
-    if (!eventId || !name || !capacity) {
-        throw new Error("All fields (eventId, name, capacity) are required");
+    const validation = eventZoneSchema.safeParse({ eventId, name, capacity });
+    if (!validation.success) {
+        throw new Error("Invalid input");
     }
     return await prisma.eventZone.update({
         where: { id },
