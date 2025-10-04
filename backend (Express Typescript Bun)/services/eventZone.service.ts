@@ -4,9 +4,9 @@ import zod from "zod";
 const prisma = new PrismaClient();
 
 const eventZoneSchema = zod.object({
-    eventId: zod.number().min(1),
-    name: zod.string().min(2).max(100),
-    capacity: zod.number().min(1)
+    eventId: zod.number().min(1, "Event ID must be a positive integer"),
+    name: zod.string().min(2, "Name must be at least 2 characters").max(100, "Name must be between 2 and 100 characters"),
+    capacity: zod.number().min(1, "Capacity must be a positive integer and greater than zero"),
 });
 
 export const getAllEventZones = async () => {
@@ -34,7 +34,7 @@ export const createEventZone = async (
 ) => {
     const validation = eventZoneSchema.safeParse({ eventId, name, capacity });
     if (!validation.success) {
-        throw new Error("Invalid input");
+        throw new Error(validation.error.message);
     }
     return await prisma.eventZone.create({
         data: {

@@ -26,7 +26,7 @@ export const createNewEventZone = async (req: Request, res: Response) => {
         const eventZone = await createEventZone(eventId, name, capacity);
         res.status(201).json(eventZone);
     } catch (error) {
-        res.status(500).json({ error: "Failed to create event zone" });
+        res.status(400).json({ error: (error as Error).message || "Failed to create event zone" });
     }
 };
 
@@ -37,7 +37,7 @@ export const modifyEventZone = async (req: Request, res: Response) => {
         const updatedEventZone = await updateEventZone(Number(id), eventId, name, capacity);
         res.json(updatedEventZone);
     } catch (error) {
-        res.status(500).json({ error: "Failed to update event zone" });
+        res.status(400).json({ error: (error as Error).message || "Failed to update event zone" });
     }
 };
 
