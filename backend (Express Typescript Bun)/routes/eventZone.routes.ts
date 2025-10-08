@@ -7,5 +7,5 @@ router.get("/", getEventZones);
 router.post("/", createNewEventZone);
 router.get("/:id", getEventZone);
 router.delete("/:id", removeEventZone);
-router.put("/:id", modifyEventZone);   
+router.put("/:id", modifyEventZone);
 export default router;
