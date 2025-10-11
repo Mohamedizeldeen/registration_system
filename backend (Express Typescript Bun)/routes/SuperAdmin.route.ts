@@ -6,7 +6,7 @@ import { authenticateJWT } from "../middlewares/authenticcateJWT.middleware";
 const router = Router();
 
 router.get("/dashboard",
-    isAdminOrSuperAdmin, authenticateJWT,
+    authenticateJWT, isAdminOrSuperAdmin,
     DashboardController);
 
 export default router;

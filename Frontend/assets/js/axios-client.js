@@ -26,7 +26,7 @@ function initializeAxios() {
         axiosInstance.interceptors.request.use(
             (config) => {
                 // Add auth token if available
-                const token = localStorage.getItem('auth_token');
+                const token = localStorage.getItem('mfw_auth_token');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
@@ -41,7 +41,7 @@ function initializeAxios() {
             (error) => {
                 if (error.response?.status === 401) {
                     // Handle unauthorized access
-                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('mfw_auth_token');
                     window.location.href = '/login';
                 }
                 return Promise.reject(error);

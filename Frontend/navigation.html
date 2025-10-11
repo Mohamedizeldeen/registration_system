@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFW Events - Navigation</title>
+    <link rel="stylesheet" href="assets/css/output.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold gradient-text mb-4">MFW Events Management</h1>
+                <p class="text-gray-600 text-lg">Access your dashboard and management tools</p>
+            </div>
+
+            <!-- Navigation Cards -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Main Dashboard -->
+                <a href="index.html" class="modern-card p-6 hover:shadow-xl transition-all duration-300 group">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-home text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Main Platform</h3>
+                        <p class="text-gray-600 text-sm">Homepage and platform overview</p>
+                    </div>
+                </a>
+
+                <!-- SuperAdmin Dashboard -->
+                <a href="SuperAdmin-dashboard/index.html" class="modern-card p-6 hover:shadow-xl transition-all duration-300 group">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-crown text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">SuperAdmin Dashboard</h3>
+                        <p class="text-gray-600 text-sm">Complete system administration</p>
+                    </div>
+                </a>
+
+                <!-- Login -->
+                <a href="login.html" class="modern-card p-6 hover:shadow-xl transition-all duration-300 group">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-sign-in-alt text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Login</h3>
+                        <p class="text-gray-600 text-sm">Access your account</p>
+                    </div>
+                </a>
+
+                <!-- Events -->
+                <a href="Events/index.html" class="modern-card p-6 hover:shadow-xl transition-all duration-300 group">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-calendar-alt text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Events</h3>
+                        <p class="text-gray-600 text-sm">Manage events and schedules</p>
+                    </div>
+                </a>
+
+                <!-- Users -->
+                <a href="Users/index.html" class="modern-card p-6 hover:shadow-xl transition-all duration-300 group">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Users</h3>
+                        <p class="text-gray-600 text-sm">User management and profiles</p>
+                    </div>
+                </a>
+
+                <!-- Companies -->
+                <a href="Companies/index.html" class="modern-card p-6 hover:shadow-xl transition-all duration-300 group">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-building text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 mb-2">Companies</h3>
+                        <p class="text-gray-600 text-sm">Company management</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- URL Information -->
+            <div class="mt-12 p-6 bg-white rounded-lg shadow-md">
+                <h3 class="font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                    Server Information
+                </h3>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <p><strong>Current URL:</strong> <span id="current-url" class="text-blue-600"></span></p>
+                    <p><strong>Server Port:</strong> 3000</p>
+                    <p><strong>Correct URLs for access:</strong></p>
+                    <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                        <li><code>http://localhost:3000/SuperAdmin-dashboard/index.html</code></li>
+                        <li><code>http://localhost:3000/login.html</code></li>
+                        <li><code>http://localhost:3000/</code> (main platform)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('current-url').textContent = window.location.href;
+    </script>
+</body>
+</html>

@@ -19,7 +19,7 @@ async function loadDashboardData() {
         console.log('Attempting to fetch data from:', API_BASE_URL);
         
         // Get auth token from localStorage
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('mfw_auth_token');
         console.log('Auth token found:', !!token);
         
         const headers = {
@@ -62,7 +62,7 @@ async function loadDashboardData() {
         if (error.response?.status === 401) {
             errorMessage = 'Authentication failed: Please login with super admin credentials to access this dashboard.';
             // Remove invalid token and suggest redirect to login
-            localStorage.removeItem('auth_token');
+            localStorage.removeItem('mfw_auth_token');
         } else if (error.response?.status === 403) {
             errorMessage = 'Access denied: You do not have super admin privileges to access this dashboard.';
         } else if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {

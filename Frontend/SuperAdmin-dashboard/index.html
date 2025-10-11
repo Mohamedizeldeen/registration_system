@@ -11,9 +11,19 @@
     <link rel="stylesheet" href="../assets/css/output.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../assets/js/axios.min.js"></script>
+    <!-- Authentication Scripts -->
+    <script src="../assets/js/auth.js"></script>
+    <script src="../assets/js/auth-middleware.js"></script>
 </head>
 
 <body class="bg-gray-50">
+    <!-- Authentication Loading Screen -->
+    <div id="auth-check" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span class="text-gray-700">Verifying authentication...</span>
+        </div>
+    </div>
     <!-- Navigation -->
     <nav class="bg-white shadow-lg border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +43,7 @@
                     <!-- Desktop Navigation Links -->
                     <div class="hidden lg:flex lg:items-center lg:space-x-2 lg:ml-8">
                         <!-- Dashboard Link -->
-                        <a href="../index.html" class="bg-blue-100 text-blue-700 border-blue-300 px-3 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+                        <a href="#" class="bg-blue-100 text-blue-700 border-blue-300 px-3 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
                             <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
                         
@@ -56,6 +66,9 @@
                         <a href="../Coupons/index.html" class="text-gray-700 hover:text-blue-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
                             <i class="fas fa-tags mr-2"></i>Coupons
                         </a>
+                        <a href="../index.html" class="text-gray-700 hover:text-blue-600 hover:bg-gray-100 px-3 py-2 rounded-md text-sm font-medium transition duration-200 flex items-center">
+                            <i class="fas fa-home mr-2"></i>Back to Website
+                        </a>
                     </div>
                 </div>
 
@@ -68,8 +81,8 @@
                                 <i class="fas fa-user text-white text-sm"></i>
                             </div>
                             <div class="hidden md:block text-left">
-                                <p class="text-sm font-medium text-gray-900">Super Admin</p>
-                                <p class="text-xs text-gray-600">System Administrator</p>
+                                <p class="text-sm font-medium text-gray-900" data-user-name>Loading...</p>
+                                <p class="text-xs text-gray-600" data-user-role>Loading...</p>
                             </div>
                             <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
                         </button>
@@ -77,16 +90,16 @@
                         <!-- User Dropdown Menu -->
                         <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
                             <div class="px-4 py-2 border-b border-gray-100 md:hidden">
-                                <p class="text-sm font-medium text-gray-900">Super Admin</p>
-                                <p class="text-xs text-gray-600">System Administrator</p>
+                                <p class="text-sm font-medium text-gray-900" data-user-name>Loading...</p>
+                                <p class="text-xs text-gray-600" data-user-email>Loading...</p>
                             </div>
                             <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                 <i class="fas fa-user-cog mr-2"></i>Profile Settings
                             </a>
                             <hr class="border-gray-100">
-                            <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                            <button data-logout="true" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                            </a>
+                            </button>
                         </div>
                     </div>
 
@@ -107,7 +120,7 @@
         <div id="mobileMenu" class="lg:hidden hidden">
             <div class="px-2 pt-2 pb-3 space-y-1 bg-gray-50 border-t border-gray-200">
                 <!-- Dashboard Link -->
-                <a href="../index.html" class="bg-blue-100 text-blue-700 border-blue-300 block px-3 py-2 rounded-md text-base font-medium">
+                <a href="#" class="bg-blue-100 text-blue-700 border-blue-300 block px-3 py-2 rounded-md text-base font-medium">
                     <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
                 </a>
 
@@ -129,6 +142,9 @@
                 </a>
                 <a href="../Coupons/index.html" class="text-gray-700 hover:text-blue-600 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
                     <i class="fas fa-tags mr-3"></i>Coupons
+                </a>
+                <a href="../index.html" class="text-gray-700 hover:text-blue-600 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium">
+                    <i class="fas fa-home mr-3"></i>Back to Website
                 </a>
 
                 <!-- Mobile-only items -->
@@ -189,7 +205,9 @@
                             <option>Last 90 days</option>
                         </select>
                     </div>
-                    <canvas id="revenueChart" class="max-h-96"></canvas>
+                    <div class="relative h-64">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
                 </div>
 
                 <!-- Event Performance -->
@@ -335,16 +353,252 @@
             alert('Setup Event Zone functionality would be implemented here');
         }
 
-        function addCurrency() {
-            alert('Add Currency functionality would be implemented here');
+
+
+        // Dashboard initialization
+        function initializeDashboard() {
+            // Hide loading screen
+            document.getElementById('loading').classList.add('hidden');
+            
+            // Show dashboard content
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            // Load dashboard data
+            loadDashboardData();
         }
-        
-        // Initialize Axios client on page load
+
+        // Load dashboard data (placeholder for now)
+        function loadDashboardData() {
+            try {
+                // Create sample metrics
+                createMetricCards();
+                
+                // Create top events list
+                createTopEventsList();
+                
+                // Create recent activity
+                createRecentActivity();
+                
+                // Create upcoming events
+                createUpcomingEvents();
+                
+                // Initialize charts if Chart.js is available
+                if (typeof Chart !== 'undefined') {
+                    initializeCharts();
+                }
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showError('Failed to load dashboard data');
+            }
+        }
+
+        // Create metric cards
+        function createMetricCards() {
+            const metricsGrid = document.getElementById('metrics-grid');
+            const metrics = [
+                { title: 'Total Events', value: '24', icon: 'fas fa-calendar-alt', color: 'blue' },
+                { title: 'Active Companies', value: '12', icon: 'fas fa-building', color: 'green' },
+                { title: 'Total Attendees', value: '1,247', icon: 'fas fa-users', color: 'purple' },
+                { title: 'Revenue', value: '$45,678', icon: 'fas fa-dollar-sign', color: 'yellow' }
+            ];
+
+            metricsGrid.innerHTML = metrics.map(metric => `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 bg-${metric.color}-100 rounded-lg flex items-center justify-center">
+                                <i class="${metric.icon} text-${metric.color}-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">${metric.title}</p>
+                            <p class="text-2xl font-bold text-gray-900">${metric.value}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            // Revenue chart
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Revenue',
+                            data: [1200, 1900, 3000, 5000, 2000, 3000, 4500],
+                            borderColor: 'rgb(79, 70, 229)',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Show error state
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('error-message').textContent = message;
+        }
+
+        // Quick Action Functions
+        function createNewEvent() {
+            window.location.href = '../Events/index.html?action=create';
+        }
+
+        function addTicketType() {
+            window.location.href = '../Tickets/index.html?action=create';
+        }
+
+        function createCoupon() {
+            window.location.href = '../Coupons/index.html?action=create';
+        }
+
+        function setupEventZone() {
+            window.location.href = '../EventZones/index.html?action=create';
+        }
+
+        // Create top performing events list
+        function createTopEventsList() {
+            const container = document.getElementById('top-events-container');
+            if (!container) return;
+
+            const topEvents = [
+                { name: 'Tech Conference 2024', attendees: 1247, revenue: '$12,450' },
+                { name: 'Music Festival Summer', attendees: 892, revenue: '$8,920' },
+                { name: 'Business Summit', attendees: 564, revenue: '$5,640' },
+                { name: 'Art Exhibition', attendees: 423, revenue: '$4,230' }
+            ];
+
+            container.innerHTML = topEvents.map((event, index) => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
+                            ${index + 1}
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">${event.name}</p>
+                            <p class="text-sm text-gray-600">${event.attendees} attendees</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold text-green-600">${event.revenue}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Create recent activity list
+        function createRecentActivity() {
+            const container = document.getElementById('recent-activity-container');
+            if (!container) return;
+
+            const activities = [
+                { type: 'registration', message: 'New attendee registered for Tech Conference 2024', time: '2 minutes ago', icon: 'fas fa-user-plus', color: 'green' },
+                { type: 'payment', message: 'Payment received for Business Summit tickets', time: '5 minutes ago', icon: 'fas fa-credit-card', color: 'blue' },
+                { type: 'event', message: 'Art Exhibition event updated', time: '12 minutes ago', icon: 'fas fa-edit', color: 'orange' },
+                { type: 'coupon', message: 'New coupon "EARLY20" created', time: '1 hour ago', icon: 'fas fa-tags', color: 'purple' },
+                { type: 'company', message: 'TechCorp company profile verified', time: '2 hours ago', icon: 'fas fa-building', color: 'gray' }
+            ];
+
+            container.innerHTML = activities.map(activity => `
+                <div class="flex items-center p-3 hover:bg-gray-50 rounded-lg transition duration-200">
+                    <div class="w-10 h-10 bg-${activity.color}-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="${activity.icon} text-${activity.color}-600 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-900">${activity.message}</p>
+                        <p class="text-xs text-gray-500">${activity.time}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Create upcoming events grid
+        function createUpcomingEvents() {
+            const container = document.getElementById('upcoming-events-grid');
+            if (!container) return;
+
+            const upcomingEvents = [
+                { name: 'Tech Conference 2024', date: 'Oct 25, 2024', location: 'Convention Center', attendees: 1200, status: 'active' },
+                { name: 'Music Festival Summer', date: 'Nov 15, 2024', location: 'Central Park', attendees: 850, status: 'planning' },
+                { name: 'Business Summit', date: 'Dec 5, 2024', location: 'Hilton Hotel', attendees: 500, status: 'draft' }
+            ];
+
+            container.innerHTML = upcomingEvents.map(event => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-gray-900">${event.name}</h4>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${
+                            event.status === 'active' ? 'bg-green-100 text-green-800' :
+                            event.status === 'planning' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                        }">${event.status}</span>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            <span>${event.date}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <span>${event.location}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-users mr-2"></i>
+                            <span>${event.attendees} attendees expected</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize everything on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize authentication first
+            const authResult = initializeSuperAdminAuth();
+            if (!authResult) {
+                return; // Authentication failed, user will be redirected
+            }
+            
+            // Hide auth loading screen
+            const authCheck = document.getElementById('auth-check');
+            if (authCheck) {
+                authCheck.remove();
+            }
+            
+            // Initialize user info display
+            initializeUserInfo();
+            
+            // Initialize dashboard
+            setTimeout(() => {
+                initializeDashboard();
+            }, 500); // Small delay to show loading state
+            
+            // Initialize Axios client if available
             if (window.AxiosAPI) {
                 AxiosAPI.init();
                 console.log('Axios client initialized and ready');
             }
+            
+            console.log('SuperAdmin Dashboard loaded successfully');
         });
     </script>
     
