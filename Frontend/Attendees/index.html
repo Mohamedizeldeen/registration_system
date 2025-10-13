@@ -7,6 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/axios.min.js"></script>
     <script src="../assets/js/api.js"></script>
+    <script src="../lib/qrcode.min.js"></script>
+    <script src="../assets/js/libs/jspdf.umd.min.js"></script>
+    <!-- Export/Import Libraries (Local) -->
+    <script src="../assets/js/libs/xlsx.full.min.js"></script>
+    <script src="../assets/js/libs/papaparse.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-overlay { 
@@ -34,7 +39,10 @@
                     <p class="text-gray-600 mt-2">Manage event registrations and attendee information</p>
                 </div>
                 <div class="flex space-x-3">
-                    <button onclick="exportAttendees()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition duration-200 flex items-center">
+                    <button onclick="openImportModal()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md transition duration-200 flex items-center">
+                        <i class="fas fa-upload mr-2"></i>Import CSV
+                    </button>
+                    <button onclick="openExportModal()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition duration-200 flex items-center">
                         <i class="fas fa-download mr-2"></i>Export CSV
                     </button>
                     <a href="create.html" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200 flex items-center">
@@ -142,6 +150,173 @@
                         Close
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Import Attendees</h3>
+                    <button onclick="closeImportModal()" class="text-gray-400 hover:text-gray-600" title="Close modal">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="font-medium text-blue-900 mb-2">Instructions:</h4>
+                        <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                            <li>Download the template file using the button below</li>
+                            <li>Fill in the attendee data in the same order as the template</li>
+                            <li>Save the file as CSV format</li>
+                            <li>Upload the completed file using the file selector below</li>
+                        </ol>
+                        
+                        <!-- Download Template Button -->
+                        <div class="mt-4 pt-3 border-t border-blue-200">
+                            <p class="text-sm text-blue-700 mb-2 text-center">
+                                <i class="fas fa-info-circle mr-1"></i>Start by downloading the template
+                            </p>
+                            <button onclick="downloadTemplate()" class="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition duration-200 flex items-center justify-center font-medium shadow-sm">
+                                <i class="fas fa-file-download mr-2"></i>Download Template
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Event Selection for Import -->
+                    <div>
+                        <label for="importEventId" class="block text-sm font-medium text-gray-700 mb-2">
+                            Select Event <span class="text-red-500">*</span>
+                        </label>
+                        <select id="importEventId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                               onchange="validateImportReadiness()">
+                            <option value="">Select an event for import...</option>
+                            <!-- Events will be loaded dynamically -->
+                        </select>
+                        <div id="importEventError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div>
+                        <label for="csvFile" class="block text-sm font-medium text-gray-700 mb-2">
+                            Select CSV File <span class="text-red-500">*</span>
+                        </label>
+                        <input type="file" 
+                               id="csvFile" 
+                               accept=".csv,.xlsx,.xls"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               onchange="validateImportFile()">
+                        <div id="fileError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    
+                    <div id="importPreview" class="hidden">
+                        <h4 class="font-medium text-gray-900 mb-2">Preview (First 5 rows):</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead id="previewTableHead" class="bg-gray-50">
+                                    <!-- Dynamic headers -->
+                                </thead>
+                                <tbody id="previewTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Dynamic preview data -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="totalRowsInfo" class="text-sm text-gray-500 mt-2"></p>
+                    </div>
+
+                    <!-- Import Results Section -->
+                    <div id="importResults" class="hidden">
+                        <h4 class="font-medium text-gray-900 mb-3">Import Results</h4>
+                        
+                        <!-- Statistics Cards -->
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-green-700" id="successCount">0</div>
+                                <div class="text-sm text-green-600">Successfully Imported</div>
+                            </div>
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-yellow-700" id="duplicateCount">0</div>
+                                <div class="text-sm text-yellow-600">Duplicates Skipped</div>
+                            </div>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                                <div class="text-2xl font-bold text-red-700" id="errorCount">0</div>
+                                <div class="text-sm text-red-600">Errors</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <span>Import Progress</span>
+                                <span id="progressText">0 / 0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Error Details (if any) -->
+                        <div id="errorDetails" class="hidden">
+                            <h5 class="font-medium text-red-800 mb-2">Error Details:</h5>
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-3 max-h-32 overflow-y-auto">
+                                <ul id="errorList" class="text-sm text-red-700 space-y-1">
+                                    <!-- Dynamic error list -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button onclick="closeImportModal()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition duration-200">
+                        Cancel
+                    </button>
+                    <button id="importButton" onclick="importAttendees()" disabled class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed">
+                        <i class="fas fa-upload mr-2"></i>Import Attendees
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900">Export Attendees</h3>
+                <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600" title="Close modal">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <label for="exportEventId" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>Select Event to Export
+                </label>
+                <select id="exportEventId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Events</option>
+                </select>
+                <p class="text-sm text-gray-500 mt-1">Choose a specific event or export all attendees from all events</p>
+            </div>
+            
+            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                <h4 class="text-sm font-semibold text-blue-800 mb-2">Export Information</h4>
+                <ul class="text-sm text-blue-700 space-y-1">
+                    <li>• <span id="exportCount">Loading...</span> attendees will be exported</li>
+                    <li>• Format: Excel (.xlsx) file</li>
+                    <li>• Includes: Name, Email, Company, Job Title, Phone, Event, Check-in Status</li>
+                </ul>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeExportModal()" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-md transition duration-200">
+                    Cancel
+                </button>
+                <button onclick="performExport()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition duration-200">
+                    <i class="fas fa-download mr-2"></i>Export Attendees
+                </button>
             </div>
         </div>
     </div>
@@ -322,13 +497,16 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button onclick="viewAttendee(${attendee.id})" class="text-blue-600 hover:text-blue-900">
+                        <button onclick="viewAttendee(${attendee.id})" class="text-blue-600 hover:text-blue-900" title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <a href="edit.html?id=${attendee.id}" class="text-indigo-600 hover:text-indigo-900">
+                        <button onclick="showBadgeView(${attendee.id})" class="text-purple-600 hover:text-purple-900" title="Badge View">
+                            <i class="fas fa-qrcode"></i>
+                        </button>
+                        <a href="edit.html?id=${attendee.id}" class="text-indigo-600 hover:text-indigo-900" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button onclick="deleteAttendee(${attendee.id})" class="text-red-600 hover:text-red-900">
+                        <button onclick="deleteAttendee(${attendee.id})" class="text-red-600 hover:text-red-900" title="Delete">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -472,15 +650,727 @@
             }
         }
 
-        // Export attendees
+        // Legacy export function - now redirects to modal
         async function exportAttendees() {
+            openExportModal();
+        }
+
+        // Download Excel template using SheetJS
+        function downloadTemplate() {
+            try {
+                // Create template data with headers and sample row (eventId and ticketId auto-generated)
+                const templateData = [
+                    {
+                        'firstName': 'John',
+                        'lastName': 'Doe', 
+                        'email': 'john.doe@example.com',
+                        'phone': '+1234567890',
+                        'company': 'Acme Corp',
+                        'jobTitle': 'Software Engineer',
+                        'country': 'United States'
+                    }
+                ];
+
+                // Create workbook and worksheet
+                const workbook = XLSX.utils.book_new();
+                const worksheet = XLSX.utils.json_to_sheet(templateData);
+
+                // Set column widths
+                const columnWidths = [
+                    { wch: 15 }, // firstName
+                    { wch: 15 }, // lastName
+                    { wch: 25 }, // email
+                    { wch: 15 }, // phone
+                    { wch: 20 }, // company
+                    { wch: 20 }, // jobTitle
+                    { wch: 15 }  // country
+                ];
+                worksheet['!cols'] = columnWidths;
+
+                // Add instructions sheet
+                const instructions = [
+                    { 'Instructions': 'How to use this template:' },
+                    { 'Instructions': '1. Fill in the attendee data in the Data sheet' },
+                    { 'Instructions': '2. All fields are required: firstName, lastName, email, phone, company, jobTitle, country' },
+                    { 'Instructions': '3. Remove the sample row before importing' },
+                    { 'Instructions': '4. Save as Excel (.xlsx) or CSV format' },
+                    { 'Instructions': '5. Return to the import dialog and upload your completed file' },
+                    { 'Instructions': '' },
+                    { 'Instructions': 'Field Descriptions:' },
+                    { 'Instructions': 'firstName: Attendee first name (required)' },
+                    { 'Instructions': 'lastName: Attendee last name (required)' },
+                    { 'Instructions': 'email: Valid email address (required)' },
+                    { 'Instructions': 'phone: Phone number with country code (required)' },
+                    { 'Instructions': 'company: Company or organization name (required)' },
+                    { 'Instructions': 'jobTitle: Job title or position (required)' },
+                    { 'Instructions': 'country: Country name (required)' },
+                    { 'Instructions': '' },
+                    { 'Instructions': 'Note: Event ID and Ticket ID are auto-generated' },
+                    { 'Instructions': 'and do not need to be included in your import file.' }
+                ];
+
+                const instructionsSheet = XLSX.utils.json_to_sheet(instructions);
+                instructionsSheet['!cols'] = [{ wch: 50 }];
+
+                // Add sheets to workbook
+                XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Instructions');
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+                // Download template
+                XLSX.writeFile(workbook, 'attendees_import_template.xlsx');
+
+                showAlert('Template downloaded successfully! Fill in your data and return here to upload.', 'success');
+            } catch (error) {
+                console.error('Error downloading template:', error);
+                showAlert('Error downloading template. Please try again.', 'error');
+            }
+        }
+
+        // Open import modal
+        async function openImportModal() {
+            document.getElementById('importModal').classList.remove('hidden');
+            // Reset file input and preview
+            document.getElementById('csvFile').value = '';
+            document.getElementById('importEventId').value = '';
+            document.getElementById('importPreview').classList.add('hidden');
+            document.getElementById('importResults').classList.add('hidden');
+            document.getElementById('errorDetails').classList.add('hidden');
+            document.getElementById('fileError').classList.add('hidden');
+            document.getElementById('importEventError').classList.add('hidden');
+            
+            // Reset import button
+            const importButton = document.getElementById('importButton');
+            importButton.textContent = 'Import Attendees';
+            importButton.innerHTML = '<i class="fas fa-upload mr-2"></i>Import Attendees';
+            importButton.onclick = importAttendees;
+            importButton.disabled = true;
+            
+            // Load events for selection
+            await loadEventsForImport();
+            
+            // Clear parsed data
+            window.parsedImportData = null;
+        }
+
+        // Validate import readiness (event selected and file uploaded)
+        function validateImportReadiness() {
+            const eventId = document.getElementById('importEventId').value;
+            const hasFileData = window.parsedImportData !== null && window.parsedImportData !== undefined;
+            const importButton = document.getElementById('importButton');
+            
+            if (eventId && hasFileData) {
+                importButton.disabled = false;
+                document.getElementById('importEventError').classList.add('hidden');
+            } else {
+                importButton.disabled = true;
+                if (!eventId && hasFileData) {
+                    document.getElementById('importEventError').textContent = 'Please select an event';
+                    document.getElementById('importEventError').classList.remove('hidden');
+                }
+            }
+        }
+
+        // Load events for import selection
+        async function loadEventsForImport() {
+            try {
+                const response = await window.EventAPI.getAll();
+                console.log('Events API response for import:', response);
+                
+                // Handle different response formats from backend
+                const events = Array.isArray(response) ? response : (response.allEvents || response.data || response || []);
+                console.log('Loaded events for import:', events);
+                
+                const eventSelect = document.getElementById('importEventId');
+                
+                // Clear existing options (except the first one)
+                eventSelect.innerHTML = '<option value="">Select an event for import...</option>';
+                
+                // Add event options
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.id;
+                    option.textContent = event.name;
+                    eventSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading events:', error);
+                showAlert('Error loading events. Please refresh and try again.', 'error');
+            }
+        }
+
+        // Close import modal
+        function closeImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+        }
+
+        // Export Modal Functions
+        async function openExportModal() {
+            document.getElementById('exportModal').classList.remove('hidden');
+            await loadEventsForExport();
+            updateExportCount();
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.add('hidden');
+        }
+
+        // Load events for export selection
+        async function loadEventsForExport() {
+            try {
+                const response = await window.EventAPI.getAll();
+                console.log('Events API response for export:', response);
+                
+                // Handle different response formats from backend
+                const events = Array.isArray(response) ? response : (response.allEvents || response.data || response || []);
+                console.log('Loaded events for export:', events);
+                
+                const eventSelect = document.getElementById('exportEventId');
+                eventSelect.innerHTML = '<option value="">All Events</option>';
+                
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.id;
+                    option.textContent = event.name || event.title || `Event ${event.id}`;
+                    eventSelect.appendChild(option);
+                });
+
+                // Add event listener for count updates
+                eventSelect.addEventListener('change', updateExportCount);
+            } catch (error) {
+                console.error('Error loading events for export:', error);
+                showAlert('Error loading events. Please refresh and try again.', 'error');
+            }
+        }
+
+        // Update export count based on selected event
+        function updateExportCount() {
+            const selectedEventId = document.getElementById('exportEventId').value;
+            let count = 0;
+            
+            if (!selectedEventId) {
+                // All events
+                count = attendees.length;
+            } else {
+                // Specific event
+                count = attendees.filter(attendee => attendee.eventId == selectedEventId).length;
+            }
+            
+            const eventText = selectedEventId ? 
+                `from selected event` : 
+                `from all events`;
+            
+            document.getElementById('exportCount').textContent = `${count} attendee${count !== 1 ? 's' : ''} ${eventText}`;
+        }
+
+        // Perform the actual export
+        async function performExport() {
             try {
                 showLoading();
-                // This would typically call an export API endpoint
-                showAlert('Export feature will be implemented soon.', 'info');
+                
+                const selectedEventId = document.getElementById('exportEventId').value;
+                let dataToExport = attendees;
+                
+                // Filter by event if specific event selected
+                if (selectedEventId) {
+                    dataToExport = attendees.filter(attendee => attendee.eventId == selectedEventId);
+                }
+                
+                if (!dataToExport || dataToExport.length === 0) {
+                    showAlert('No attendees found to export.', 'warning');
+                    return;
+                }
+
+                // Prepare data for SheetJS
+                const exportData = dataToExport.map(attendee => ({
+                    'First Name': attendee.firstName || '',
+                    'Last Name': attendee.lastName || '',
+                    'Email': attendee.email || '',
+                    'Phone': attendee.phone || '',
+                    'Company': attendee.company || '',
+                    'Job Title': attendee.jobTitle || '',
+                    'Country': attendee.country || '',
+                    'Event ID': attendee.eventId || '',
+                    'Event Name': attendee.event?.title || attendee.event?.name || '',
+                    'Ticket ID': attendee.ticketId || '',
+                    'Ticket Type': attendee.ticket?.name || '',
+                    'Status': attendee.status || '',
+                    'Registration Date': attendee.createdAt ? new Date(attendee.createdAt).toLocaleDateString() : '',
+                    'Check-in Status': attendee.checkedInAt ? 'Checked In' : 'Not Checked In',
+                    'Check-in Date': attendee.checkedInAt ? new Date(attendee.checkedInAt).toLocaleDateString() : ''
+                }));
+
+                // Create workbook and worksheet
+                const workbook = XLSX.utils.book_new();
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+                // Set column widths for better formatting
+                const columnWidths = [
+                    { wch: 15 }, // First Name
+                    { wch: 15 }, // Last Name
+                    { wch: 25 }, // Email
+                    { wch: 15 }, // Phone
+                    { wch: 20 }, // Company
+                    { wch: 20 }, // Job Title
+                    { wch: 15 }, // Country
+                    { wch: 10 }, // Event ID
+                    { wch: 25 }, // Event Name
+                    { wch: 10 }, // Ticket ID
+                    { wch: 20 }, // Ticket Type
+                    { wch: 12 }, // Status
+                    { wch: 15 }, // Registration Date
+                    { wch: 15 }, // Check-in Status
+                    { wch: 15 }  // Check-in Date
+                ];
+                worksheet['!cols'] = columnWidths;
+
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendees');
+
+                // Generate filename with timestamp and event info
+                const timestamp = new Date().toISOString().split('T')[0];
+                const eventInfo = selectedEventId ? 
+                    `_event_${selectedEventId}` : 
+                    '_all_events';
+                const filename = `attendees_export${eventInfo}_${timestamp}.xlsx`;
+
+                // Export file
+                XLSX.writeFile(workbook, filename);
+
+                const exportSummary = selectedEventId ? 
+                    `${dataToExport.length} attendees from selected event` :
+                    `${dataToExport.length} attendees from all events`;
+
+                showAlert(`Export completed successfully! (${exportSummary})`, 'success');
+                closeExportModal();
             } catch (error) {
                 console.error('Error exporting attendees:', error);
                 showAlert('Error exporting attendees. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Validate import file and show preview using PapaParse
+        function validateImportFile() {
+            const fileInput = document.getElementById('csvFile');
+            const fileError = document.getElementById('fileError');
+            const importButton = document.getElementById('importButton');
+            const importPreview = document.getElementById('importPreview');
+
+            if (!fileInput.files.length) {
+                importButton.disabled = true;
+                importPreview.classList.add('hidden');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const allowedExtensions = ['.csv', '.xlsx', '.xls'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                fileError.textContent = 'Please select a valid CSV or Excel file.';
+                fileError.classList.remove('hidden');
+                importButton.disabled = true;
+                importPreview.classList.add('hidden');
+                return;
+            }
+
+            fileError.classList.add('hidden');
+
+            // Handle Excel files
+            if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+                handleExcelFile(file);
+            } else {
+                // Handle CSV files with PapaParse
+                handleCSVFile(file);
+            }
+        }
+
+        // Handle Excel file parsing
+        function handleExcelFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Get first worksheet
+                    const worksheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[worksheetName];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        throw new Error('Excel file must contain at least a header row and one data row.');
+                    }
+
+                    const headers = jsonData[0];
+                    const dataRows = jsonData.slice(1).filter(row => row.some(cell => cell !== undefined && cell !== ''));
+                    
+                    validateAndPreviewData(headers, dataRows);
+                    
+                } catch (error) {
+                    document.getElementById('fileError').textContent = `Error reading Excel file: ${error.message}`;
+                    document.getElementById('fileError').classList.remove('hidden');
+                    document.getElementById('importButton').disabled = true;
+                    document.getElementById('importPreview').classList.add('hidden');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Handle CSV file parsing with PapaParse
+        function handleCSVFile(file) {
+            Papa.parse(file, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    try {
+                        if (results.errors.length > 0) {
+                            console.warn('CSV parsing warnings:', results.errors);
+                        }
+
+                        if (results.data.length < 2) {
+                            throw new Error('CSV file must contain at least a header row and one data row.');
+                        }
+
+                        const headers = results.data[0];
+                        const dataRows = results.data.slice(1);
+                        
+                        validateAndPreviewData(headers, dataRows);
+                        
+                    } catch (error) {
+                        document.getElementById('fileError').textContent = error.message;
+                        document.getElementById('fileError').classList.remove('hidden');
+                        document.getElementById('importButton').disabled = true;
+                        document.getElementById('importPreview').classList.add('hidden');
+                    }
+                },
+                error: function(error) {
+                    document.getElementById('fileError').textContent = `Error parsing CSV: ${error.message}`;
+                    document.getElementById('fileError').classList.remove('hidden');
+                    document.getElementById('importButton').disabled = true;
+                    document.getElementById('importPreview').classList.add('hidden');
+                }
+            });
+        }
+
+        // Validate data and show preview
+        function validateAndPreviewData(headers, dataRows) {
+            // All required fields for attendee import - eventId and ticketId will be auto-generated
+            const requiredFields = ['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'country'];
+            
+            // Check required fields
+            const missingFields = requiredFields.filter(field => !headers.includes(field));
+            if (missingFields.length > 0) {
+                throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+            }
+
+            // Store parsed data for import first
+            window.parsedImportData = { headers, dataRows };
+
+            // Show preview (first 5 rows)
+            showImportPreview(headers, dataRows.slice(0, 5));
+            document.getElementById('totalRowsInfo').textContent = `Total rows to import: ${dataRows.length}`;
+            document.getElementById('importPreview').classList.remove('hidden');
+            
+            // Enable import button only if event is selected
+            validateImportReadiness();
+        }
+
+        // Show import preview table
+        function showImportPreview(headers, dataRows) {
+            const previewTableHead = document.getElementById('previewTableHead');
+            const previewTableBody = document.getElementById('previewTableBody');
+
+            // Create header row
+            previewTableHead.innerHTML = `
+                <tr>
+                    ${headers.map(header => `<th class="px-4 py-2 text-left font-medium text-gray-900">${header || 'Unknown'}</th>`).join('')}
+                </tr>
+            `;
+
+            // Create data rows
+            previewTableBody.innerHTML = dataRows.map(row => {
+                // Handle both string and array formats
+                const cells = Array.isArray(row) ? row : row.split(',').map(cell => cell.trim().replace(/"/g, ''));
+                
+                return `
+                    <tr>
+                        ${headers.map((header, index) => {
+                            const cellValue = cells[index] || '';
+                            return `<td class="px-4 py-2 text-sm text-gray-700">${cellValue}</td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Import attendees using parsed data
+        // Show import results section
+        function showImportResults(totalRows) {
+            document.getElementById('importResults').classList.remove('hidden');
+            document.getElementById('importPreview').classList.add('hidden');
+            updateProgressDisplay(0, 0, 0, 0, totalRows);
+        }
+
+        // Update import progress and statistics
+        function updateProgressDisplay(processed, successCount, duplicateCount, errorCount, totalRows) {
+            document.getElementById('successCount').textContent = successCount;
+            document.getElementById('duplicateCount').textContent = duplicateCount;
+            document.getElementById('errorCount').textContent = errorCount;
+            document.getElementById('progressText').textContent = `${processed} / ${totalRows}`;
+            
+            const progressPercentage = totalRows > 0 ? (processed / totalRows) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+        }
+
+        // Show error details
+        function showErrorDetails(errors) {
+            if (errors.length > 0) {
+                const errorDetails = document.getElementById('errorDetails');
+                const errorList = document.getElementById('errorList');
+                
+                errorList.innerHTML = errors.slice(0, 20).map(error => 
+                    `<li class="flex items-start"><i class="fas fa-exclamation-circle mr-2 mt-0.5 text-red-500"></i>${error}</li>`
+                ).join('');
+                
+                if (errors.length > 20) {
+                    errorList.innerHTML += `<li class="text-red-500 font-medium">... and ${errors.length - 20} more errors</li>`;
+                }
+                
+                errorDetails.classList.remove('hidden');
+            }
+        }
+
+        async function importAttendees() {
+            try {
+                showLoading();
+
+                if (!window.parsedImportData) {
+                    showAlert('Please select and validate a file first.', 'error');
+                    return;
+                }
+
+                const { headers, dataRows } = window.parsedImportData;
+                
+                // Show results section and hide preview
+                showImportResults(dataRows.length);
+
+                // Test API connectivity first
+                try {
+                    const testResponse = await axios.get('http://localhost:3001/attendees');
+                } catch (connectError) {
+                    throw new Error('Cannot connect to backend server. Please ensure the server is running on port 3001.');
+                }
+
+                let successCount = 0;
+                let errorCount = 0;
+                let duplicateCount = 0;
+                const errors = [];
+
+                // Process each data row
+                for (let i = 0; i < dataRows.length; i++) {
+                    try {
+                        const row = dataRows[i];
+                        const attendeeData = {};
+
+                        // Map row data to attendee object
+                        headers.forEach((header, index) => {
+                            if (row[index] !== undefined && row[index] !== '' && row[index] !== null) {
+                                // Clean up the value (trim whitespace)
+                                attendeeData[header] = String(row[index]).trim();
+                            }
+                        });
+
+                        // Debug logging (can be disabled by setting debugImport to false)
+                        // Set to true when debugging import issues
+                        const debugImport = true;
+                        if (debugImport) {
+                            console.log(`Processing row ${i + 2}:`, attendeeData);
+                            console.log(`Headers:`, headers);
+                            console.log(`Raw row data:`, row);
+                        }
+
+                        // Skip empty rows (check if any required fields have data)
+                        const hasRequiredData = attendeeData.firstName || attendeeData.lastName || attendeeData.email || 
+                                              attendeeData.phone || attendeeData.company || attendeeData.jobTitle || attendeeData.country;
+                        if (!hasRequiredData) {
+                            if (debugImport) console.log(`Skipping empty row ${i + 2}`);
+                            continue;
+                        }
+
+                        // Validate all required fields
+                        const missingFields = [];
+                        if (!attendeeData.firstName) missingFields.push('firstName');
+                        if (!attendeeData.lastName) missingFields.push('lastName');
+                        if (!attendeeData.email) missingFields.push('email');
+                        if (!attendeeData.phone) missingFields.push('phone');
+                        if (!attendeeData.company) missingFields.push('company');
+                        if (!attendeeData.jobTitle) missingFields.push('jobTitle');
+                        if (!attendeeData.country) missingFields.push('country');
+
+                        if (missingFields.length > 0) {
+                            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+                        }
+
+                        // Validate email format
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(attendeeData.email)) {
+                            throw new Error('Invalid email format');
+                        }
+
+                        // Add eventId from the selected event in the import modal
+                        const selectedEventId = document.getElementById('importEventId').value;
+                        if (selectedEventId) {
+                            attendeeData.eventId = parseInt(selectedEventId, 10);
+                        }
+
+                        // Additional data validation and cleanup
+                        // Ensure all fields are strings and properly formatted
+                        attendeeData.firstName = String(attendeeData.firstName).trim();
+                        attendeeData.lastName = String(attendeeData.lastName).trim();
+                        attendeeData.email = String(attendeeData.email).trim().toLowerCase();
+                        attendeeData.phone = String(attendeeData.phone).trim();
+                        attendeeData.company = String(attendeeData.company).trim();
+                        attendeeData.jobTitle = String(attendeeData.jobTitle).trim();
+                        attendeeData.country = String(attendeeData.country).trim();
+
+                        // Validate data lengths to prevent database errors
+                        if (attendeeData.firstName.length > 100) {
+                            throw new Error('First name is too long (max 100 characters)');
+                        }
+                        if (attendeeData.lastName.length > 100) {
+                            throw new Error('Last name is too long (max 100 characters)');
+                        }
+                        if (attendeeData.email.length > 255) {
+                            throw new Error('Email is too long (max 255 characters)');
+                        }
+                        if (attendeeData.phone.length > 20) {
+                            throw new Error('Phone number is too long (max 20 characters)');
+                        }
+                        if (attendeeData.company.length > 255) {
+                            throw new Error('Company name is too long (max 255 characters)');
+                        }
+                        if (attendeeData.jobTitle.length > 255) {
+                            throw new Error('Job title is too long (max 255 characters)');
+                        }
+                        if (attendeeData.country.length > 100) {
+                            throw new Error('Country name is too long (max 100 characters)');
+                        }
+
+                        // Log the data being sent to API for debugging
+                        if (debugImport) {
+                            console.log(`Sending to API for row ${i + 2}:`, JSON.stringify(attendeeData, null, 2));
+                        }
+
+                        // Create attendee via API with enhanced error handling
+                        try {
+                            const response = await window.AttendeeAPI.create(attendeeData);
+                            if (debugImport) {
+                                console.log(`API response for row ${i + 2}:`, response);
+                            }
+                            successCount++;
+                            // Update progress display
+                            updateProgressDisplay(i + 1, successCount, duplicateCount, errorCount, dataRows.length);
+                        } catch (apiError) {
+                            // Handle duplicate email error (409 Conflict)
+                            if (apiError.response?.status === 409 && apiError.response?.data?.code === 'DUPLICATE_EMAIL') {
+                                const email = attendeeData.email;
+                                duplicateCount++;
+                                // Update progress display for duplicate
+                                updateProgressDisplay(i + 1, successCount, duplicateCount, errorCount, dataRows.length);
+                                // Don't count as error, just skip and continue
+                                continue;
+                            }
+                            
+                            // Get more detailed error message for other errors
+                            let errorMessage = 'Unknown error';
+                            
+                            if (apiError.response?.data) {
+                                const responseData = apiError.response.data;
+                                
+                                if (typeof responseData === 'string') {
+                                    errorMessage = responseData;
+                                } else if (responseData.message) {
+                                    errorMessage = responseData.message;
+                                } else if (responseData.error) {
+                                    errorMessage = responseData.error;
+                                } else if (responseData.errors) {
+                                    errorMessage = Array.isArray(responseData.errors) 
+                                        ? responseData.errors.join(', ') 
+                                        : JSON.stringify(responseData.errors);
+                                } else {
+                                    errorMessage = JSON.stringify(responseData);
+                                }
+                            } else if (apiError.response?.status === 500) {
+                                errorMessage = 'Internal server error';
+                            } else {
+                                errorMessage = apiError.message;
+                            }
+                            
+                            console.error(`💥 Final error message:`, errorMessage);
+                            throw new Error(errorMessage);
+                        }
+
+                    } catch (error) {
+                        errorCount++;
+                        errors.push(`Row ${i + 2}: ${error.message}`); // +2 because of header row and 0-based index
+                        console.error(`Import error for row ${i + 2}:`, error);
+                        // Update progress display for error
+                        updateProgressDisplay(i + 1, successCount, duplicateCount, errorCount, dataRows.length);
+                    }
+                }
+
+                // Clear parsed data
+                window.parsedImportData = null;
+
+                // Show error details if any
+                if (errors.length > 0) {
+                    showErrorDetails(errors);
+                }
+
+                // Show results summary
+                let message = '';
+                if (successCount > 0) {
+                    message += `Successfully imported ${successCount} new attendees.`;
+                }
+                if (duplicateCount > 0) {
+                    message += ` ${duplicateCount} duplicate${duplicateCount > 1 ? 's' : ''} skipped.`;
+                }
+                if (errorCount > 0) {
+                    message += ` ${errorCount} error${errorCount > 1 ? 's' : ''} occurred.`;
+                }
+
+                if (successCount > 0 || duplicateCount > 0) {
+                    const alertType = errorCount > 0 ? 'warning' : (duplicateCount > 0 ? 'info' : 'success');
+                    showAlert(message.trim(), alertType);
+                    
+                    if (successCount > 0) {
+                        loadAttendees(); // Reload the attendees list only if new attendees were added
+                    }
+                    
+                    // Change import button to "Done" after completion
+                    const importButton = document.getElementById('importButton');
+                    importButton.textContent = 'Done';
+                    importButton.onclick = closeImportModal;
+                    importButton.disabled = false;
+                } else {
+                    showAlert('No attendees were imported. Please check your file format and data.', 'error');
+                }
+
+                // Log first few errors for debugging
+                if (errors.length > 0) {
+                    console.error('Import errors (first 10):', errors.slice(0, 10));
+                    if (errors.length > 10) {
+                        console.log(`... and ${errors.length - 10} more errors`);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error importing attendees:', error);
+                showAlert('Error importing attendees. Please try again.', 'error');
             } finally {
                 hideLoading();
             }
@@ -523,6 +1413,194 @@
             setTimeout(() => {
                 alertContainer.classList.add('hidden');
             }, 5000);
+        }
+
+        // Show Badge View with QR Code
+        async function showBadgeView(attendeeId) {
+            try {
+                console.log('showBadgeView called with ID:', attendeeId);
+                showLoading();
+                
+                // Check if API is available
+                if (!window.AttendeeAPI) {
+                    console.error('AttendeeAPI not available');
+                    showAlert('API not loaded. Please refresh the page.', 'error');
+                    return;
+                }
+                
+                // Get attendee details
+                console.log('Calling AttendeeAPI.getById...');
+                const response = await window.AttendeeAPI.getById(attendeeId);
+                console.log('API response:', response);
+                
+                // The API returns the attendee directly, not in a data property
+                const attendee = response;
+                
+                if (attendee && attendee.id) {
+                    console.log('Attendee found:', attendee);
+                    await displayBadgeModal(attendee);
+                } else {
+                    console.log('No attendee found in response');
+                    showAlert('Attendee not found.', 'error');
+                }
+            } catch (error) {
+                console.error('Error showing badge view:', error);
+                showAlert('Error showing badge view: ' + (error.message || 'Unknown error'), 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display Badge Modal with QR Code
+        async function displayBadgeModal(attendee) {
+            try {
+                console.log('displayBadgeModal called with attendee:', attendee);
+                
+                // Generate confirmation URL
+                const confirmationUrl = generateConfirmationUrl(attendee);
+                console.log('Generated confirmation URL:', confirmationUrl);
+                
+                // Generate QR code for the URL
+                const qrCodeDataUrl = await generateQRCodeForUrl(confirmationUrl);
+                console.log('Generated QR code successfully');
+                
+                // Create modal HTML
+                const modalHtml = `
+                    <div id="badgeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative">
+                            <button onclick="closeBadgeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                            
+                            <div class="text-center">
+                                <h2 class="text-2xl font-bold text-gray-900 mb-2">Attendee Badge</h2>
+                                <p class="text-gray-600 mb-6">Scan QR code for confirmation details</p>
+                                
+                                <!-- Attendee Info -->
+                                <div class="mb-6">
+                                    <h3 class="text-xl font-semibold text-gray-800">${attendee.firstName} ${attendee.lastName}</h3>
+                                    <p class="text-gray-600">${attendee.email}</p>
+                                    ${attendee.company ? `<p class="text-gray-600 font-medium">${attendee.company}</p>` : ''}
+                                </div>
+                                
+                                <!-- QR Code -->
+                                <div class="mb-6">
+                                    <div class="bg-white p-4 rounded-lg border-2 border-gray-200 inline-block">
+                                        <img src="${qrCodeDataUrl}" alt="QR Code" class="w-48 h-48 mx-auto" />
+                                    </div>
+                                </div>
+                                
+                                <!-- Confirmation URL -->
+                                <div class="mb-6">
+                                    <p class="text-sm text-gray-600 mb-2">Confirmation Link:</p>
+                                    <div class="bg-gray-50 p-3 rounded border text-sm">
+                                        <a href="${confirmationUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 break-all">
+                                            ${confirmationUrl}
+                                        </a>
+                                    </div>
+                                    <button onclick="copyToClipboard('${confirmationUrl}')" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                                        <i class="fas fa-copy mr-2"></i>Copy Link
+                                    </button>
+                                </div>
+                                
+                                <!-- Actions -->
+                                <div class="flex space-x-3">
+                                    <button onclick="downloadQRCode('${qrCodeDataUrl}', '${attendee.firstName}_${attendee.lastName}')" class="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                        <i class="fas fa-download mr-2"></i>Download QR
+                                    </button>
+                                    <button onclick="closeBadgeModal()" class="flex-1 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add modal to page
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+            } catch (error) {
+                console.error('Error displaying badge modal:', error);
+                showAlert('Error generating QR code.', 'error');
+            }
+        }
+        
+        // Generate confirmation URL based on attendee details
+        function generateConfirmationUrl(attendee) {
+            // Generate a unique hash for the attendee
+            const attendeeHash = btoa(`${attendee.id}-${attendee.email}-${attendee.firstName}-${attendee.lastName}`).replace(/[+/=]/g, '');
+            
+            // You can customize this URL format to match your requirements
+            // For now, using a generic format similar to your example
+            const baseUrl = window.location.origin;
+            const eventSlug = (attendee.event && attendee.event.name) 
+                ? attendee.event.name.toLowerCase().replace(/[^a-z0-9]/g, '') 
+                : 'event2025';
+            
+            return `${baseUrl}/public/events/${eventSlug}/registrations/${attendeeHash}/confirmation`;
+        }
+        
+        // Generate QR code for URL
+        async function generateQRCodeForUrl(url) {
+            if (typeof QRCode === 'undefined') {
+                throw new Error('QRCode library not loaded');
+            }
+            
+            try {
+                const qrCodeDataUrl = await QRCode.toDataURL(url, {
+                    width: 512,
+                    height: 512,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                });
+                
+                return qrCodeDataUrl;
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                throw error;
+            }
+        }
+        
+        // Close badge modal
+        function closeBadgeModal() {
+            const modal = document.getElementById('badgeModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // Copy URL to clipboard
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showAlert('Link copied to clipboard!', 'success');
+            } catch (error) {
+                console.error('Error copying to clipboard:', error);
+                
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('Link copied to clipboard!', 'success');
+            }
+        }
+        
+        // Download QR code as image
+        function downloadQRCode(dataUrl, attendeeName) {
+            const link = document.createElement('a');
+            link.download = `QR_${attendeeName}_${new Date().getTime()}.png`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showAlert('QR code downloaded!', 'success');
         }
     </script>
     

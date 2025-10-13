@@ -185,6 +185,11 @@
                     <input type="email" id="email" name="email" required 
                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                            placeholder="Enter your email address">
+                    <div id="emailError" class="text-red-500 text-sm mt-1 hidden"></div>
+                    <div id="emailValidating" class="text-blue-500 text-sm mt-1 hidden">
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+                        Checking email availability...
+                    </div>
                 </div>
                 
                 <div>
@@ -617,6 +622,86 @@
             document.getElementById('registration-form').reset();
         }
 
+        // Email validation functions
+        let emailValidationTimeout;
+        
+        async function validateEmailField() {
+            const emailInput = document.getElementById('email');
+            const emailError = document.getElementById('emailError');
+            const emailValidating = document.getElementById('emailValidating');
+            const email = emailInput.value.trim().toLowerCase();
+            
+            // Clear previous validation state
+            emailError.classList.add('hidden');
+            emailValidating.classList.add('hidden');
+            emailInput.classList.remove('border-red-500', 'border-green-500');
+            
+            // Skip validation if email is empty or invalid format
+            if (!email || !email.includes('@')) {
+                return;
+            }
+            
+            // Show validating state
+            emailValidating.classList.remove('hidden');
+            
+            try {
+                // Get eventId from the hidden input field
+                const eventIdInput = document.getElementById('event-id');
+                const eventId = eventIdInput ? eventIdInput.value : null;
+                
+                if (!eventId) {
+                    console.error('Event ID not found');
+                    return;
+                }
+                
+                const isDuplicate = await checkEmailExists(email, parseInt(eventId, 10));
+                
+                // Hide validating state
+                emailValidating.classList.add('hidden');
+                
+                if (isDuplicate) {
+                    emailError.textContent = 'This email is already registered for this event. Please use a different email address.';
+                    emailError.classList.remove('hidden');
+                    emailInput.classList.add('border-red-500');
+                    return false;
+                } else {
+                    emailInput.classList.add('border-green-500');
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error validating email:', error);
+                emailValidating.classList.add('hidden');
+                return true; // Allow form submission if validation fails
+            }
+        }
+        
+        async function checkEmailExists(email, eventId) {
+            try {
+                if (!eventId) {
+                    console.error('No eventId provided for duplicate check');
+                    return false;
+                }
+                
+                const response = await fetch(`${API_BASE_URL}/attendees`);
+                const data = await response.json();
+                const attendees = data.allAttendees || data.data || data;
+                
+                if (Array.isArray(attendees)) {
+                    const duplicateAttendee = attendees.find(attendee => 
+                        attendee.email && 
+                        attendee.email.toLowerCase() === email.toLowerCase() && 
+                        parseInt(attendee.eventId) === parseInt(eventId)
+                    );
+                    
+                    return !!duplicateAttendee;
+                }
+                return false;
+            } catch (error) {
+                console.error('Error checking email existence:', error);
+                return false; // Allow registration if check fails
+            }
+        }
+
         // Handle registration form submission
         async function handleRegistration(formData) {
             try {
@@ -629,7 +714,16 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Registration failed');
+                    const errorData = await response.json();
+                    console.error('Registration error response:', errorData);
+                    
+                    // Handle duplicate email error specifically
+                    if (response.status === 409 && errorData.code === 'DUPLICATE_EMAIL') {
+                        alert(`Registration Failed: ${errorData.message}\n\nPlease use a different email address or contact the event organizer if you believe this is an error.`);
+                        return;
+                    }
+                    
+                    throw new Error(errorData.message || 'Registration failed');
                 }
 
                 const result = await response.json();
@@ -792,6 +886,19 @@
             document.getElementById('success-modal').classList.add('hidden');
         });
 
+        // Email validation event listener
+        document.getElementById('email').addEventListener('input', function() {
+            // Clear previous timeout
+            if (emailValidationTimeout) {
+                clearTimeout(emailValidationTimeout);
+            }
+            
+            // Set new timeout for validation (debounce)
+            emailValidationTimeout = setTimeout(() => {
+                validateEmailField();
+            }, 500); // Wait 500ms after user stops typing
+        });
+
         // Handle registration form submission
         document.getElementById('registration-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -820,6 +927,13 @@
                 discountAmount: priceCalculation.discountAmount,
                 totalPrice: priceCalculation.totalPrice
             };
+
+            // Validate email for duplicates first
+            const isEmailValid = await validateEmailField();
+            if (isEmailValid === false) {
+                alert('Please fix the email error before submitting the form.');
+                return;
+            }
 
             // Validate form data
             const validationErrors = validateForm(registrationData);

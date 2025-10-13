@@ -1,8 +1,4 @@
-<!DOC    <title>Register New Attendee | Event Registration System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="../assets/js/axios.min.js"></script>
-    <script src="../assets/js/api.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"> html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,10 +6,13 @@
     <title>Register New Attendee | Event Registration System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="../assets/js/axios.min.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../lib/qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-overlay { 
             background: rgba(255, 255, 255, 0.9); 
+            -webkit-backdrop-filter: blur(2px);
             backdrop-filter: blur(2px); 
         }
     </style>
@@ -32,7 +31,7 @@
     <div class="bg-white shadow-sm">
         <div class="max-w-4xl mx-auto px-4 py-6">
             <div class="flex items-center space-x-4">
-                <a href="index.html" class="text-gray-600 hover:text-gray-900">
+                <a href="index.html" class="text-gray-600 hover:text-gray-900" title="Back to Attendee List">
                     <i class="fas fa-arrow-left text-xl"></i>
                 </a>
                 <div>
@@ -47,6 +46,36 @@
     <div id="alertContainer" class="max-w-4xl mx-auto px-4 pt-4 hidden">
         <div id="alertMessage" class="px-4 py-3 rounded relative" role="alert">
             <span id="alertText"></span>
+        </div>
+    </div>
+
+    <!-- Success Modal with QR Code -->
+    <div id="successModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                    <i class="fas fa-check h-6 w-6 text-green-600"></i>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-5">Registration Successful!</h3>
+                <div class="mt-4 px-7 py-3">
+                    <p class="text-sm text-gray-500 mb-4">Your attendee has been registered successfully. Here's their QR code:</p>
+                    <div class="flex justify-center mb-4">
+                        <div id="qrCodeContainer" class="border border-gray-300 rounded-lg p-4 bg-gray-50">
+                            <div id="qrCodeCanvas" class="flex items-center justify-center w-32 h-32 bg-white rounded border">
+                                <span class="text-xs text-gray-400">Generating QR...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="attendeeInfo" class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                        <!-- Attendee info will be populated here -->
+                    </div>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="closeModal" class="px-4 py-2 bg-green-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300">
+                        Continue to Attendee List
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -503,17 +532,85 @@
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (field) {
-                    field.addEventListener('blur', () => validateField(fieldId));
-                    field.addEventListener('input', () => clearFieldError(fieldId));
+                    if (fieldId === 'email') {
+                        // Special handling for email field with async validation
+                        field.addEventListener('blur', validateEmailField);
+                        field.addEventListener('input', () => clearFieldError(fieldId));
+                    } else {
+                        field.addEventListener('blur', () => validateField(fieldId));
+                        field.addEventListener('input', () => clearFieldError(fieldId));
+                    }
                 }
             });
         }
 
         // Handle form submission
+        // Check if email already exists for the specific event
+        async function checkEmailExists(email, eventId) {
+            try {
+                const response = await axios.get('http://localhost:3001/attendees');
+                const attendees = response.data.allAttendees || [];
+                
+                // Check if any attendee has the same email for the same event (case-insensitive)
+                return attendees.some(attendee => 
+                    attendee.email && 
+                    attendee.email.toLowerCase() === email.toLowerCase() &&
+                    attendee.eventId == eventId // Use == for loose comparison to handle string/number conversion
+                );
+            } catch (error) {
+                console.error('Error checking email existence:', error);
+                // If we can't check, allow the form to proceed (backend will handle it)
+                return false;
+            }
+        }
+
+        // Async email validation with duplicate checking
+        async function validateEmailField() {
+            const emailField = document.getElementById('email');
+            const emailError = document.getElementById('emailError');
+            const value = emailField.value.trim();
+            
+            // Clear previous styling
+            emailField.classList.remove('border-red-500', 'border-gray-300');
+            emailError.classList.add('hidden');
+            
+            if (!value) {
+                emailField.classList.add('border-red-500');
+                emailError.textContent = 'Email is required';
+                emailError.classList.remove('hidden');
+                return false;
+            }
+            
+            if (!isValidEmail(value)) {
+                emailField.classList.add('border-red-500');
+                emailError.textContent = 'Please enter a valid email address';
+                emailError.classList.remove('hidden');
+                return false;
+            }
+            
+            // Check for duplicate email for the selected event
+            const eventId = document.getElementById('eventId').value;
+            if (eventId) {
+                const emailExists = await checkEmailExists(value, eventId);
+                if (emailExists) {
+                    emailField.classList.add('border-red-500');
+                    emailError.textContent = 'This email is already registered for this event';
+                    emailError.classList.remove('hidden');
+                    return false;
+                }
+            }
+            
+            // If all validations pass
+            emailField.classList.add('border-gray-300');
+            return true;
+        }
+
         async function handleFormSubmit(e) {
             e.preventDefault();
             
-            if (!validateForm()) {
+            // Validate form including async email validation
+            const isFormValid = await validateFormAsync();
+            if (!isFormValid) {
                 return;
             }
 
@@ -525,12 +622,11 @@
                 
                 const response = await window.AttendeeAPI.create(attendeeData);
                 
-                showAlert('Attendee registered successfully!', 'success');
+                // Show success modal with QR code
+                showSuccessModalWithQR(response.data || attendeeData);
                 
-                // Reset form after successful creation
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 2000);
+                // Reset form
+                document.getElementById('attendeeForm').reset();
                 
             } catch (error) {
                 console.error('Error creating attendee:', error);
@@ -545,17 +641,38 @@
             }
         }
 
-        // Validate entire form
+        // Validate entire form (synchronous version for non-email fields)
         function validateForm() {
             let isValid = true;
             
-            const requiredFields = ['firstName', 'lastName', 'email', 'eventId', 'ticketId'];
+            const requiredFields = ['firstName', 'lastName', 'eventId', 'ticketId'];
             
             requiredFields.forEach(fieldId => {
                 if (!validateField(fieldId)) {
                     isValid = false;
                 }
             });
+            
+            return isValid;
+        }
+
+        // Async form validation including email duplicate check
+        async function validateFormAsync() {
+            let isValid = true;
+            
+            // Validate non-email fields first
+            const nonEmailFields = ['firstName', 'lastName', 'eventId', 'ticketId'];
+            nonEmailFields.forEach(fieldId => {
+                if (!validateField(fieldId)) {
+                    isValid = false;
+                }
+            });
+            
+            // Validate email field asynchronously
+            const emailValid = await validateEmailField();
+            if (!emailValid) {
+                isValid = false;
+            }
             
             return isValid;
         }
@@ -701,6 +818,86 @@
             setTimeout(() => {
                 alertContainer.classList.add('hidden');
             }, 5000);
+        }
+
+        // Show success modal with QR code
+        function showSuccessModalWithQR(attendeeData) {
+            const modal = document.getElementById('successModal');
+            const attendeeInfo = document.getElementById('attendeeInfo');
+            const qrContainer = document.getElementById('qrCodeCanvas');
+            
+            // Populate attendee info
+            const fullName = attendeeData.firstName + ' ' + attendeeData.lastName;
+            attendeeInfo.innerHTML = 
+                '<div class="text-center">' +
+                    '<div class="font-semibold text-gray-800">' + fullName + '</div>' +
+                    '<div class="text-gray-600">' + attendeeData.email + '</div>' +
+                    (attendeeData.company ? '<div class="text-gray-500">' + attendeeData.company + '</div>' : '') +
+                '</div>';
+            
+            // Generate QR code
+            generateQRCode(attendeeData, qrContainer);
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Setup close modal handler
+            document.getElementById('closeModal').onclick = function() {
+                modal.classList.add('hidden');
+                window.location.href = 'index.html';
+            };
+        }
+
+        // Generate QR code for attendee
+        function generateQRCode(attendeeData, container) {
+            if (typeof QRCode === 'undefined') {
+                console.warn('QRCode library not loaded');
+                container.innerHTML = '<span class="text-xs text-red-400">QR Error</span>';
+                return;
+            }
+            
+            try {
+                // Create QR data with attendee info
+                const qrData = JSON.stringify({
+                    name: attendeeData.firstName + ' ' + attendeeData.lastName,
+                    email: attendeeData.email,
+                    id: attendeeData.id || 'pending',
+                    company: attendeeData.company || '',
+                    registered: new Date().toISOString()
+                });
+                
+                // Clear container
+                container.innerHTML = '<span class="text-xs text-gray-400">Generating QR...</span>';
+                
+                // Generate QR code using toDataURL
+                QRCode.toDataURL(qrData, {
+                    width: 128,
+                    height: 128,
+                    margin: 1,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }).then(function(dataURL) {
+                    // Create image element and set the data URL
+                    const img = document.createElement('img');
+                    img.src = dataURL;
+                    img.style.width = '128px';
+                    img.style.height = '128px';
+                    img.style.display = 'block';
+                    img.style.margin = '0 auto';
+                    
+                    // Clear container and add image
+                    container.innerHTML = '';
+                    container.appendChild(img);
+                }).catch(function(error) {
+                    console.error('QR code generation error:', error);
+                    container.innerHTML = '<span class="text-xs text-red-400">QR Generation Failed</span>';
+                });
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                container.innerHTML = '<span class="text-xs text-red-400">QR Error</span>';
+            }
         }
     </script>
     

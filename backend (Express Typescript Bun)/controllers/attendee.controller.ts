@@ -3,7 +3,8 @@ import { getAllAttendees,getAttendeeById,deleteAttendee,createAttendee,updateAtt
 
 export const fetchAllAttendees = async (req: Request, res: Response) => {
   try {
-    const attendees = await getAllAttendees();
+    const eventId = req.query.eventId || req.query.event_id;
+    const attendees = await getAllAttendees(eventId ? parseInt(eventId as string) : undefined);
     res.json({ allAttendees : attendees });
   } catch (error) {
     console.error("Error fetching attendees:", error);
@@ -55,9 +56,50 @@ export const addAttendee = async (req: Request, res: Response) => {
   } = req.body;
 
   try {
+    // Debug: Log received data
+    console.log('Received attendee data:', req.body);
+    console.log('firstName:', firstName, 'lastName:', lastName);
+    
+    // Validate required fields
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: "First name and last name are required" });
+    }
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    
+    if (!jobTitle) {
+      return res.status(400).json({ error: "Job title is required" });
+    }
+    
+    if (!company) {
+      return res.status(400).json({ error: "Company is required" });
+    }
+    
+    if (!phone) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    if (!eventId) {
+      return res.status(400).json({ error: "Event ID is required" });
+    }
+
     // Convert string IDs to integers or undefined
     const parsedEventId = eventId ? parseInt(eventId, 10) : undefined;
     const parsedTicketId = ticketId ? parseInt(ticketId, 10) : undefined;
+    
+    console.log("Creating attendee with data:", {
+      firstName,
+      lastName,
+      parsedEventId,
+      parsedTicketId,
+      email,
+      phone,
+      company,
+      jobTitle,
+      country
+    });
     
     const newAttendee = await createAttendee(
       firstName,
@@ -71,9 +113,18 @@ export const addAttendee = async (req: Request, res: Response) => {
       country
     );
     res.status(201).json({ createdAttendee: newAttendee });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error adding attendee:", error);
-    res.status(500).json({ error: "Internal server error" });
+    
+    // Provide more specific error messages
+    if (error.message) {
+      res.status(500).json({ error: error.message });
+    } else if (error.code === 'P2002') {
+      // Unique constraint violation
+      res.status(400).json({ error: "An attendee with this information already exists" });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 };
 
@@ -95,6 +146,30 @@ export const modifyAttendee = async (req: Request, res: Response) => {
   } = req.body;
 
   try {
+    // Debug: Log received data
+    console.log('Updating attendee data:', req.body);
+    console.log('firstName:', firstName, 'lastName:', lastName);
+    
+    // Validate required fields
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: "First name and last name are required" });
+    }
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    
+    if (!jobTitle) {
+      return res.status(400).json({ error: "Job title is required" });
+    }
+    
+    if (!company) {
+      return res.status(400).json({ error: "Company is required" });
+    }
+    
+    if (!phone) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
     // Convert string IDs to integers or undefined
     const parsedEventId = eventId ? parseInt(eventId, 10) : undefined;
     const parsedTicketId = ticketId ? parseInt(ticketId, 10) : undefined;
