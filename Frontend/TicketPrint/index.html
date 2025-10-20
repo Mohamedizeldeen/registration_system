@@ -279,6 +279,12 @@
                                 <select id="scannerEventFilter" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onScannerEventChange()">
                                     <option value="">Select an event...</option>
                                 </select>
+                                <div class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p class="text-xs text-blue-800">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        <strong>Important:</strong> Select an event first before scanning QR codes. Only attendees from the selected event can be scanned.
+                                    </p>
+                                </div>
                             </div>
                             
                             <!-- Scanner Area -->
@@ -290,16 +296,47 @@
                                         <p class="text-xs text-gray-400 mt-1">Select an event to start scanning</p>
                                     </div>
                                 </div>
+                                
+                                <!-- Scanning Tips -->
+                                <div id="scanning-tips" class="hidden mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <h5 class="text-sm font-medium text-blue-800 mb-2">
+                                        <i class="fas fa-lightbulb mr-1"></i>Scanning Tips
+                                    </h5>
+                                    <ul class="text-xs text-blue-700 space-y-1">
+                                        <li>• Hold QR code 6-12 inches from camera</li>
+                                        <li>• Ensure good lighting on the QR code</li>
+                                        <li>• Keep QR code flat and steady</li>
+                                        <li>• Make sure QR code fills the scanning box</li>
+                                        <li>• Try different angles if not detecting</li>
+                                    </ul>
+                                </div>
                             </div>
                             
                             <!-- Scanner Controls -->
-                            <div class="flex space-x-3 mb-4">
+                            <div class="flex space-x-2 mb-4">
                                 <button id="start-scan" onclick="startScanning()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                                     <i class="fas fa-play mr-2"></i>Start Scanner
                                 </button>
                                 <button id="stop-scan" onclick="stopScanning()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 hidden">
                                     <i class="fas fa-stop mr-2"></i>Stop Scanner
                                 </button>
+                                <button onclick="testQRScanning()" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-3 rounded-lg transition duration-200" title="Test QR scanning without camera">
+                                    <i class="fas fa-flask"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Manual QR Input -->
+                            <div class="border-t pt-4 mb-4">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-keyboard mr-2 text-blue-600"></i>Manual QR Input
+                                </h4>
+                                <div class="flex gap-2">
+                                    <input type="text" id="manual-qr-input" placeholder="Paste QR code data here..." class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button onclick="processManualQR()" class="bg-orange-600 hover:bg-orange-700 text-white font-medium py-2 px-3 rounded-md text-sm transition duration-200">
+                                        <i class="fas fa-check mr-1"></i>Process
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">If camera isn't working, you can manually paste QR code data here</p>
                             </div>
                             
                             <!-- Auto-Print Option -->
@@ -927,8 +964,8 @@
             return new Promise(function(resolve, reject) {
                 console.log('Loading attendees for event ID:', eventId);
                 
-                // Load attendees filtered by event ID using query parameter
-                fetch(API_BASE_URL + '/attendees?eventId=' + eventId, {
+                // Load all attendees first, then filter by event ID on frontend
+                fetch(API_BASE_URL + '/attendees', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -936,24 +973,38 @@
                     mode: 'cors'
                 })
                 .then(function(response) {
+                    console.log('API Response status:', response.status);
                     if (response.ok) {
                         return response.json();
                     } else {
-                        throw new Error('Failed to load attendees for event ' + eventId);
+                        throw new Error('Failed to load attendees, status: ' + response.status);
                     }
                 })
                 .then(function(result) {
+                    console.log('Raw API result:', result);
+                    
                     if (result.allAttendees && Array.isArray(result.allAttendees)) {
-                        var processedAttendees = result.allAttendees.map(function(attendee) {
+                        // Filter attendees by event ID on frontend
+                        var eventAttendees = result.allAttendees.filter(function(attendee) {
+                            return attendee.eventId == eventId || attendee.event_id == eventId;
+                        });
+                        
+                        console.log('Found ' + eventAttendees.length + ' attendees for event ' + eventId + ' out of ' + result.allAttendees.length + ' total');
+                        
+                        var processedAttendees = eventAttendees.map(function(attendee) {
                             return {
                                 id: attendee.id,
+                                firstName: attendee.firstName,
+                                lastName: attendee.lastName,
                                 full_name: attendee.full_name || (attendee.firstName + ' ' + attendee.lastName),
                                 email: attendee.email,
                                 company: attendee.company || '',
                                 jobTitle: attendee.jobTitle || '',
                                 phone: attendee.phone || '',
+                                eventId: attendee.eventId || attendee.event_id,
                                 event_id: attendee.eventId || attendee.event_id,
-                                checked_in_at: attendee.checked_in_at || null
+                                checked_in_at: attendee.checked_in_at || null,
+                                checkedInAt: attendee.checkedInAt || attendee.checked_in_at || null
                             };
                         });
                         
@@ -1294,7 +1345,8 @@
                 email: email,
                 jobTitle: jobTitle,
                 company: company,
-                phone: phone
+                phone: phone,
+                eventId: editingAttendee.eventId || editingAttendee.event_id
             };
             
             // Show loading state
@@ -1311,8 +1363,11 @@
             .then(function(response) {
                 if (response.ok) {
                     return response.json();
+                } else {
+                    return response.json().then(function(errorData) {
+                        throw new Error('Failed to update attendee: ' + (errorData.error || response.status));
+                    });
                 }
-                throw new Error('Failed to update attendee');
             })
             .then(function(updatedAttendee) {
                 // Update the attendee in local arrays
@@ -1910,6 +1965,37 @@
             }, 300);
         }
 
+        // Test QR scanning without camera
+        function testQRScanning() {
+            console.log('=== TESTING QR SCANNING ===');
+            
+            // Check prerequisites
+            if (!currentEvent) {
+                alert('Please select an event first!');
+                return;
+            }
+            
+            if (!allAttendees || allAttendees.length === 0) {
+                alert('No attendees loaded for this event!');
+                return;
+            }
+            
+            // Create test QR data using first attendee
+            var testAttendee = allAttendees[0];
+            var testQRData = JSON.stringify({
+                id: testAttendee.id,
+                name: (testAttendee.firstName || '') + ' ' + (testAttendee.lastName || ''),
+                email: testAttendee.email,
+                event: currentEvent.name || currentEvent.title || 'Event'
+            });
+            
+            console.log('Testing with QR data:', testQRData);
+            alert('Testing QR scan with:\n' + testQRData);
+            
+            // Simulate scanning this QR code
+            onScanSuccess(testQRData, null);
+        }
+
         // QR Scanner functionality
         function startScanning() {
             if (!currentEvent) {
@@ -1927,52 +2013,115 @@
             
             html5QrCode = new Html5Qrcode("qr-reader");
             
+            // Enhanced configuration for better QR detection
             const config = {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                fps: 20,  // Increased frame rate for better detection
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    // Make the qrbox responsive and larger
+                    let minEdgePercentage = 0.7; // 70% of the smallest edge
+                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                    let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                    return {
+                        width: qrboxSize,
+                        height: qrboxSize
+                    };
+                },
+                aspectRatio: 1.0,
+                rememberLastUsedCamera: true,
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
             };
             
-            html5QrCode.start(
-                { facingMode: "environment" }, // Use back camera
-                config,
-                onScanSuccess,
-                onScanFailure
-            ).then(() => {
+            // Try multiple camera configurations for better compatibility
+            tryStartCamera().then(() => {
                 document.getElementById('start-scan').classList.add('hidden');
                 document.getElementById('stop-scan').classList.remove('hidden');
+                document.getElementById('scanning-tips').classList.remove('hidden');
                 scannerActive = true;
-                showAlert('QR Scanner started successfully!', 'success');
+                showAlert('QR Scanner started! Point camera at QR code and follow the tips below.', 'success');
             }).catch(err => {
-                console.error('Failed to start QR scanner:', err);
-                showAlert('Failed to start camera. Please check permissions.', 'error');
-                
-                // Fallback: Try to get available cameras
-                Html5Qrcode.getCameras().then(devices => {
-                    if (devices && devices.length > 0) {
-                        // Try with the first available camera
-                        html5QrCode.start(
-                            devices[0].id,
-                            config,
-                            onScanSuccess,
-                            onScanFailure
-                        ).then(() => {
-                            document.getElementById('start-scan').classList.add('hidden');
-                            document.getElementById('stop-scan').classList.remove('hidden');
-                            scannerActive = true;
-                            showAlert('QR Scanner started with fallback camera!', 'success');
-                        }).catch(fallbackErr => {
-                            console.error('Fallback camera also failed:', fallbackErr);
-                            showAlert('Camera access denied or not available. You can use manual input instead.', 'warning');
-                        });
-                    } else {
-                        showAlert('No cameras found. Please use manual input.', 'warning');
-                    }
-                }).catch(cameraErr => {
-                    console.error('Failed to get cameras:', cameraErr);
-                    showAlert('Camera access not available. Please use manual input.', 'warning');
-                });
+                console.error('All camera start attempts failed:', err);
+                document.getElementById('scanning-tips').classList.add('hidden');
+                showAlert('Camera failed to start. Use Manual QR Input below or try: 1) Allow camera permissions 2) Use HTTPS 3) Try different browser', 'error');
             });
+        }
+
+        // Try multiple camera configurations
+        async function tryStartCamera() {
+            const config = {
+                fps: 20,
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    let minEdgePercentage = 0.7;
+                    let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                    let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                    return {
+                        width: qrboxSize,
+                        height: qrboxSize
+                    };
+                },
+                aspectRatio: 1.0,
+                rememberLastUsedCamera: true
+            };
+
+            // Method 1: Try back camera first
+            try {
+                console.log('Trying back camera...');
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                );
+                return;
+            } catch (err) {
+                console.log('Back camera failed:', err);
+            }
+
+            // Method 2: Try front camera
+            try {
+                console.log('Trying front camera...');
+                await html5QrCode.start(
+                    { facingMode: "user" },
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                );
+                return;
+            } catch (err) {
+                console.log('Front camera failed:', err);
+            }
+
+            // Method 3: Try specific camera devices
+            try {
+                console.log('Getting available cameras...');
+                const devices = await Html5Qrcode.getCameras();
+                console.log('Available cameras:', devices);
+                
+                if (devices && devices.length > 0) {
+                    // Try each available camera
+                    for (let i = 0; i < devices.length; i++) {
+                        try {
+                            console.log('Trying camera device:', devices[i]);
+                            await html5QrCode.start(
+                                devices[i].id,
+                                config,
+                                onScanSuccess,
+                                onScanFailure
+                            );
+                            return; // Success!
+                        } catch (err) {
+                            console.log('Camera device ' + i + ' failed:', err);
+                            if (i < devices.length - 1) {
+                                // If not the last camera, stop and try next
+                                try { await html5QrCode.stop(); } catch(e) {}
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.log('Camera enumeration failed:', err);
+            }
+
+            throw new Error('All camera methods failed');
         }
 
         // Stop scanning
@@ -1985,6 +2134,7 @@
                     
                     document.getElementById('start-scan').classList.remove('hidden');
                     document.getElementById('stop-scan').classList.add('hidden');
+                    document.getElementById('scanning-tips').classList.add('hidden');
                     
                     // Reset the scanner area
                     var readerElement = document.getElementById('qr-reader');
@@ -2007,18 +2157,39 @@
 
         // QR Scan Success Callback
         function onScanSuccess(decodedText, decodedResult) {
+            console.log('=== QR SCAN SUCCESS ===');
             console.log('QR Code scanned:', decodedText);
+            console.log('Available attendees count:', allAttendees ? allAttendees.length : 'allAttendees is undefined');
+            console.log('Current event:', currentEvent);
+            
+            // ALWAYS show what was scanned for debugging
+            showAlert('QR Scanned: ' + decodedText.substring(0, 100) + (decodedText.length > 100 ? '...' : ''), 'info');
+            
+            // Check if an event is selected and attendees are loaded
+            if (!currentEvent || !allAttendees || allAttendees.length === 0) {
+                showAlert('Please select an event first to scan QR codes. Go to the event dropdown above and select your event.', 'warning');
+                return;
+            }
+            
+            // Show an alert to debug what was scanned
+            console.log('QR Code Scanned: ' + decodedText.substring(0, 200));
             
             try {
                 // Try to parse as JSON (attendee QR code)
                 var qrData = JSON.parse(decodedText);
+                console.log('Parsed QR data:', qrData);
                 
                 if (qrData.id && qrData.email) {
+                    console.log('Looking for attendee with ID:', qrData.id, 'Email:', qrData.email);
+                    console.log('Available attendees:', allAttendees.slice(0, 3).map(a => ({ id: a.id, email: a.email, name: (a.firstName || '') + ' ' + (a.lastName || '') })));
+                    
                     // Find attendee by ID and email for security
                     var attendee = allAttendees.find(function(a) {
                         var email = a.email || '';
-                        return a.id.toString() === qrData.id.toString() && 
-                               email.toLowerCase() === qrData.email.toLowerCase();
+                        var idMatch = a.id.toString() === qrData.id.toString();
+                        var emailMatch = email.toLowerCase() === qrData.email.toLowerCase();
+                        console.log('Checking attendee ID:', a.id, 'Email:', a.email, 'ID Match:', idMatch, 'Email Match:', emailMatch);
+                        return idMatch && emailMatch;
                     });
                     
                     if (attendee) {
@@ -2042,12 +2213,16 @@
                             }
                         }, 500);
                     } else {
-                        showAlert('Attendee not found in current event: ' + (qrData.name || qrData.email), 'error');
+                        console.log('QR Data:', qrData);
+                        console.log('Available attendees:', allAttendees.map(a => ({ id: a.id, email: a.email, name: a.firstName + ' ' + a.lastName })));
+                        
+                        showAlert('Attendee not found in selected event: ' + (qrData.name || qrData.email) + '. Please verify the attendee is registered for the selected event.', 'error');
                         scanStats.failedScans++;
                         updateScanStats();
                     }
                 } else {
-                    throw new Error('Invalid QR code format');
+                    console.log('Invalid QR code format - missing id or email:', qrData);
+                    throw new Error('Invalid QR code format - missing required fields (id, email)');
                 }
             } catch (error) {
                 console.error('Error parsing QR code:', error);
@@ -2092,6 +2267,25 @@
                     updateScanStats();
                 }
             }
+        }
+
+        // Process manual QR input
+        function processManualQR() {
+            const input = document.getElementById('manual-qr-input');
+            const qrData = input.value.trim();
+            
+            if (!qrData) {
+                showAlert('Please enter QR code data first.', 'warning');
+                return;
+            }
+            
+            console.log('Processing manual QR input:', qrData);
+            
+            // Process the QR data using the same logic as camera scanning
+            onScanSuccess(qrData, null);
+            
+            // Clear the input
+            input.value = '';
         }
 
         // QR Scan Failure Callback
@@ -2149,12 +2343,13 @@
         function updateAttendeeCheckIn(attendee) {
             return new Promise(function(resolve, reject) {
                 var updateData = {
-                    firstName: attendee.full_name.split(' ')[0],
-                    lastName: attendee.full_name.split(' ').slice(1).join(' ') || '',
+                    firstName: attendee.firstName || attendee.full_name.split(' ')[0],
+                    lastName: attendee.lastName || attendee.full_name.split(' ').slice(1).join(' ') || '',
                     email: attendee.email,
-                    phone: attendee.phone,
-                    company: attendee.company,
-                    eventId: attendee.event_id,
+                    phone: attendee.phone || '',
+                    company: attendee.company || '',
+                    jobTitle: attendee.jobTitle || 'Attendee',
+                    eventId: attendee.eventId || attendee.event_id,
                     checked_in_at: new Date().toISOString()
                 };
                 
@@ -2170,7 +2365,13 @@
                     if (response.ok) {
                         return response.json();
                     } else {
-                        throw new Error('Failed to update attendee');
+                        return response.json().then(function(errorData) {
+                            console.error('Check-in update failed:', errorData);
+                            throw new Error('Failed to update attendee: ' + (errorData.error || response.status));
+                        }).catch(function() {
+                            // If we can't parse JSON, just use status
+                            throw new Error('Failed to update attendee: ' + response.status);
+                        });
                     }
                 })
                 .then(function(result) {
